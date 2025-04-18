@@ -84,12 +84,12 @@ export default function Home() {
   const { 
     control, 
     handleSubmit: hookFormSubmit, 
-    formState: { errors, isValid, isDirty },
+    formState: { errors, isValid, isDirty, touchedFields },
     getValues,
     reset
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
-    mode: 'onChange',
+    mode: 'onBlur',
     defaultValues: {
       firstName: '',
       email: '',
@@ -236,12 +236,12 @@ export default function Home() {
                     type="text"
                     aria-invalid={errors.firstName ? "true" : "false"}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2 border ${errors.firstName && touchedFields.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   />
                 )}
               />
-              {errors.firstName && (
+              {errors.firstName && touchedFields.firstName && (
                 <p id="firstName-error" className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>
               )}
             </div>
@@ -256,41 +256,47 @@ export default function Home() {
                     type="email"
                     aria-invalid={errors.email ? "true" : "false"}
                     aria-describedby={errors.email ? "email-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2 border ${errors.email && touchedFields.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   />
                 )}
               />
-              {errors.email && (
+              {errors.email && touchedFields.email && (
                 <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
           </div>
           
           {/* Questions Inputs for the User */}
-          {questions.map((question, index) => (
-            <div key={index}>
-              <label htmlFor={`ques${index + 1}`} className="block text-sm font-medium text-gray-600">
-                {question}
-              </label>
-              <Controller
-                name={`ques${index + 1}` as keyof FormDataWithDuplicateCheck}
-                control={control}
-                render={({ field }) => (
-                  <textarea
-                    id={`ques${index + 1}`}
-                    aria-invalid={errors.ques1 ? "true" : "false"}
-                    aria-describedby={errors.ques1 ? "ques1-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.ques1 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-                    {...field}
-                  />
+          {questions.map((question, index) => {
+            const fieldName = `ques${index + 1}` as keyof FormDataWithDuplicateCheck;
+            const hasError = !!errors[fieldName];
+            const isTouched = !!touchedFields[fieldName];
+            
+            return (
+              <div key={index}>
+                <label htmlFor={fieldName} className="block text-sm font-medium text-gray-600">
+                  {question}
+                </label>
+                <Controller
+                  name={fieldName}
+                  control={control}
+                  render={({ field }) => (
+                    <textarea
+                      id={fieldName}
+                      aria-invalid={hasError ? "true" : "false"}
+                      aria-describedby={hasError ? `${fieldName}-error` : undefined}
+                      className={`mt-1 block w-full p-2 border ${hasError && isTouched ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                      {...field}
+                    />
+                  )}
+                />
+                {hasError && isTouched && (
+                  <p id={`${fieldName}-error`} className="mt-1 text-sm text-red-500">{errors[fieldName]?.message as string}</p>
                 )}
-              />
-              {errors.ques1 && (
-                <p id="ques1-error" className="mt-1 text-sm text-red-500">{errors.ques1.message}</p>
-              )}
-            </div>
-          ))}   
+              </div>
+            );
+          })}   
           
           {hasDuplicateError && (
             <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">

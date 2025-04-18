@@ -233,6 +233,8 @@ export async function POST(request: Request) {
             Make sure to deeply personalize both reports to the client's specific situation based on their assessment responses. The content should feel tailored to their unique needs, goals, and challenges.
         `;
 
+        // i have created a prompt for the ai to generate the text. i want that this prompt text to be more efficient and generate more comprehensive, clear, and good results. make the necessary changes in the prompt. do not add any additional sections, just change the things in the existing prompt so that ai can generate a response which is not repeated or have similarity in responses. tweak any parameters if required.
+
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [{ role: 'user', content: prompt }],
