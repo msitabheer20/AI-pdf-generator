@@ -25,7 +25,6 @@ const styles = StyleSheet.create({
     height: 260,
   },
   contentContainer: {
-    marginTop: 260,
     width: '100%',
     position: 'relative',
   },
@@ -45,57 +44,57 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   instituteName: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#333333',
   },
   instituteTagline: {
-    fontSize: 9,
+    fontSize: 11,
     color: '#666666',
     marginTop: 2,
   },
   reportTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    marginBottom: 6,
     color: '#333333',
   },
   subtitle: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#666666',
     marginBottom: 10,
   },
   openingStatement: {
-    fontSize: 10,
+    fontSize: 12,
     fontStyle: 'italic',
     color: '#333333',
     marginBottom: 20,
-    lineHeight: 1.5,
+    lineHeight: 1.6,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: 'bold',
     marginTop: 15,
-    marginBottom: 5,
+    marginBottom: 6,
     color: '#333333',
   },
   questionTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
     marginTop: 12,
-    marginBottom: 4,
+    marginBottom: 5,
     color: '#333333',
   },
   subsectionTitle: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: 'bold',
     marginTop: 8,
-    marginBottom: 3,
+    marginBottom: 4,
     color: '#333333',
   },
   normalText: {
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 12,
+    lineHeight: 1.6,
     marginBottom: 10,
     color: '#333333',
   },
@@ -107,8 +106,8 @@ const styles = StyleSheet.create({
   },
   bulletPoint: {
     marginLeft: 15,
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 12,
+    lineHeight: 1.6,
   },
   bulletRow: {
     flexDirection: 'row',
@@ -116,7 +115,7 @@ const styles = StyleSheet.create({
   },
   bulletMarker: {
     width: 15,
-    fontSize: 10,
+    fontSize: 12,
   },
   highlightBox: {
     backgroundColor: '#f0f7ff',
@@ -125,15 +124,15 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   highlightTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 5,
     color: '#0066CC',
   },
   highlightText: {
-    fontSize: 10,
+    fontSize: 12,
     color: '#333333',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
   },
   transformationSection: {
     backgroundColor: '#f5f0ff',
@@ -142,22 +141,22 @@ const styles = StyleSheet.create({
     marginVertical: 15,
   },
   phaseTitle: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: 'bold',
     color: '#6633CC',
     marginBottom: 5,
   },
   phaseItem: {
     marginLeft: 15,
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 12,
+    lineHeight: 1.6,
     marginBottom: 3,
   },
   phaseContent: {
     marginLeft: 15,
-    fontSize: 10,
+    fontSize: 12,
     color: '#333333',
-    lineHeight: 1.5,
+    lineHeight: 1.6,
   },
   tableRow: {
     flexDirection: 'row',
@@ -170,18 +169,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#CCCCCC',
     paddingVertical: 5,
-    backgroundColor: '#F5F5F5',
+    backgroundColor: '#E5E5E5',
   },
   tableCell: {
     flex: 1,
-    fontSize: 9,
-    padding: 3,
+    fontSize: 11,
+    padding: 4,
   },
   tableCellHeader: {
     flex: 1,
-    fontSize: 9,
+    fontSize: 11,
     fontWeight: 'bold',
-    padding: 3,
+    padding: 4,
+    color: '#333333',
   },
   titleContainer: {
     marginBottom: 20,
@@ -195,8 +195,8 @@ const styles = StyleSheet.create({
   },
   closingSection: {
     marginTop: 15,
-    fontSize: 10,
-    lineHeight: 1.5,
+    fontSize: 12,
+    lineHeight: 1.6,
     fontStyle: 'italic',
     color: '#333333',
     padding: 10,
@@ -222,7 +222,7 @@ const PageWithBanner = ({ children }: { children: React.ReactNode }) => (
       {/* This empty fixed view ensures banner space is reserved on all pages */}
     </View>
     
-    {/* Content that will flow across pages with consistent top margin */}
+    {/* Content that will flow across pages with consistent spacing */}
     <View style={styles.contentContainer}>
       {children}
     </View>
@@ -313,7 +313,10 @@ const renderQuestionSection = (questionData: any, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
     <Text style={styles.questionTitle}>{cleanText(questionData.title)}</Text>
     <View style={{ marginBottom: 8, marginLeft: 10 }} wrap>
-      <Text style={styles.italicText}>{`Client Response: ${cleanText(questionData.clientResponse)}`}</Text>
+      <Text>
+        <Text style={styles.boldText}>Client Response: </Text>
+        <Text style={styles.italicText}>{cleanText(questionData.clientResponse)}</Text>
+      </Text>
     </View>
     <View style={{ marginBottom: 8 }} wrap>
       <Text style={styles.subsectionTitle}>DreamScape AI Insight:</Text>
@@ -330,7 +333,7 @@ const renderHighlightSection = (highlightData: any, key: string | number) => (
     
     {highlightData.points && Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
       <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
-        <Text style={styles.bulletMarker}>•</Text>
+        <Text style={{...styles.bulletMarker, fontWeight: 'bold'}}>•</Text>
         <Text style={styles.bulletPoint}>{cleanText(pointValue as string)}</Text>
       </View>
     ))}
@@ -346,19 +349,19 @@ const renderPhaseSection = (phaseData: any, key: string | number) => (
       <View style={{ marginLeft: 15 }}>
         {phaseData.items.focus && (
           <Text style={styles.phaseItem}>
-            <Text style={styles.boldText}>Focus: </Text>
+            <Text style={{...styles.boldText, color: '#333333'}}>Focus: </Text>
             {cleanText(phaseData.items.focus)}
           </Text>
         )}
         {phaseData.items.tools && (
           <Text style={styles.phaseItem}>
-            <Text style={styles.boldText}>Tools: </Text>
+            <Text style={{...styles.boldText, color: '#333333'}}>Tools: </Text>
             {cleanText(phaseData.items.tools)}
           </Text>
         )}
         {phaseData.items.goal && (
           <Text style={styles.phaseItem}>
-            <Text style={styles.boldText}>Goal: </Text>
+            <Text style={{...styles.boldText, color: '#333333'}}>Goal: </Text>
             {cleanText(phaseData.items.goal)}
           </Text>
         )}
@@ -375,7 +378,7 @@ const renderSectionWithItems = (sectionData: any, key: string | number) => (
     
     {sectionData.items && sectionData.items.map((item: string, idx: number) => (
       <View key={`${key}_item_${idx}`} style={styles.bulletRow}>
-        <Text style={styles.bulletMarker}>•</Text>
+        <Text style={{...styles.bulletMarker, fontWeight: 'bold'}}>•</Text>
         <Text style={styles.bulletPoint}>{cleanText(item)}</Text>
       </View>
     ))}
@@ -420,7 +423,7 @@ export const generateClientPDF = async (firstName: string, clientReport: any) =>
         {/* Fixed header space to maintain consistent spacing on all pages */}
         <View style={styles.fixedHeader} fixed />
         
-        {/* Content with proper top margin */}
+        {/* Content container */}
         <View style={styles.contentContainer}>
           {/* Header Section */}
           <View style={styles.titleContainer}>
@@ -484,7 +487,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
         {/* Fixed header space to maintain consistent spacing on all pages */}
         <View style={styles.fixedHeader} fixed />
         
-        {/* Content with proper top margin */}
+        {/* Content container */}
         <View style={styles.contentContainer}>
           <View style={styles.titleContainer}>
             <Text style={styles.reportTitle}>{cleanText(report.header?.title || 'Practitioner Case Report')}: {cleanText(firstName)}</Text>
