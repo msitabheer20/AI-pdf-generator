@@ -59,7 +59,6 @@ const requestSchema = z.object({
         }),
 });
 
-// Function to sanitize form data
 function sanitizeFormData(data: any) {
     const sanitized: Record<string, string> = {};
     
@@ -76,81 +75,101 @@ export async function POST(request: Request) {
     try {
         const formData = await request.json();
         
-        // Sanitize input data
         const sanitizedData = sanitizeFormData(formData);
         
-        // Validate request data
         const result = requestSchema.safeParse(sanitizedData);
         if (!result.success) {
-            // Return validation errors
             return NextResponse.json(
                 { error: 'Validation failed', issues: result.error.issues },
                 { status: 400 }
             );
         }
 
-        // Extract validated data
         const { firstName, email, ques1, ques2, ques3, ques4, ques5 } = result.data;
 
         const prompt = `
-                Generate two detailed reports based on the user's assessment responses. Follow the EXACT format described below.
+            Generate two detailed reports based on the user's assessment responses. Follow the EXACT format described below.
 
-                User Input:
-                - First Name: ${firstName}
-                - Email: ${email}
-                - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
-                - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
-                - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
-                - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
-                - Q5: If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why? ${ques5}
+            User Input:
+            - First Name: ${firstName}
+            - Email: ${email}
+            - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
+            - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
+            - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
+            - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
+            - Q5: If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why? ${ques5}
 
-                **CLIENT ASSESSMENT REPORT**
-                Start with a title:
-                "Client Assessment Report for ${firstName}
-                Prepared by DreamScape AI"
+            **CLIENT ASSESSMENT REPORT**
+            
+            Begin with a title:
+            "Client Assessment Report for ${firstName}
+            Prepared by DreamScape AI"
 
-                Then add an introduction paragraph about this being more than a reflection but a revelation based on evidence-based psychological frameworks.
+            Start with a warm, professional introduction that explains this assessment is based on evidence-based psychological frameworks for personal transformation. Make it clear this is more than a reflection but a revelation of patterns and opportunities.
 
-                For each of the 5 questions:
-                1. Include "Client Response:" followed by the exact user input
-                2. Follow with "DreamScape AI Reflection:" with an insightful analysis that shows understanding of the client's challenges, strengths, and needs
+            For each question, structure your response like this:
+            1. "Client Response:" - include the exact text the client provided
+            2. "DreamScape AI Insight:" - provide personalized analysis showing deep understanding of the client's situation, patterns, and potential
 
-                End with a section titled "💡 What the Neuro Change Method™ Can Do for You" that describes the benefits of working with a Certified Neuro Change Practitioner, including:
-                - Self-Concordance Mapping
-                - Automaticity Training
-                - Belief Engineering
-                - Purpose Integration Protocols
-                - Flow State Activation
+            After addressing all questions, include these two important sections:
 
-                Then add a final section titled "💎 Why Now, Why You, and Why a Neuro Change Practitioner?" with compelling reasons to act now and book a discovery session.
+            First section titled "💡 What the Neuro Change Method™ Can Do for You"
+            Explain how the Neuro Change Method specifically addresses the client's unique challenges revealed in their assessment, highlighting these components:
+            - Self-Concordance Mapping - connecting desires to deeper values
+            - Automaticity Training - rewiring automatic thoughts and behaviors
+            - Belief Engineering - reconstructing limiting beliefs
+            - Purpose Integration Protocols - aligning actions with purpose
+            - Flow State Activation - accessing peak mental performance
 
-                **PRACTITIONER CASE REPORT**
-                Start with a title:
-                "🧭 Practitioner Case Report: ${firstName}"
+            Final section titled "💎 Why Now, Why You, and Why a Neuro Change Practitioner?"
+            Provide compelling, personalized reasons why this is the ideal time for the client to take action, explaining how working with a certified practitioner can help them achieve their specific goals faster, with a warm invitation to book a discovery session.
 
-                Then add these sections in order:
-                1. "Client Summary" - A comprehensive overview of the client's situation, challenges, and goals
-                2. "Primary Objective:" - A single clear goal statement
-                3. "Key Barriers:" - A bulleted list of 3-5 obstacles
-                4. "Transformation Theme:" - A one-line transformation statement
-                5. "Neuro Change Method™: Your 4-Phase Transformation Journey" with these phases:
-                - 🧠 Phase 1: Consciousness (with Focus, Tools, Goal subsections)
-                - 🧠 Phase 2: Mindset (Neuroplasticity) (with Focus, Tools, Goal subsections)
-                - 🧠 Phase 3: The Subconscious (with Focus, Tools, Goal subsections)
-                - 🧠 Phase 4: The Brain (Permanent Integration) (with Focus, Tools, Goal subsections)
-                6. "12-Week Milestone Map" - A table with Milestone, Target Week, and Tools & Focus columns
-                7. "Projected Transformation Outcomes" - A bulleted list of 4-6 specific outcomes
-                8. End with a motivational statement
-                9. "Practitioner Notes" - With Temperament and Best Practices subsections
+            **PRACTITIONER CASE REPORT**
+            
+            Begin with the title:
+            "🧭 Practitioner Case Report: ${firstName}"
 
-                Keep each section properly formatted with appropriate spacing.
-                
-                Return these as two separate documents, separated by the delimiter "---DOCUMENT_SEPARATOR---".
-            `;
+            Then include these sections in order:
+
+            1. "Client Summary" - A comprehensive overview of presenting issues, psychological patterns, and key observations from all responses
+
+            2. "Primary Objective:" - A single clear goal statement based on assessment responses
+
+            3. "Key Barriers:" - A bulleted list (●) of 3-5 specific psychological/emotional obstacles identified
+
+            4. "Transformation Theme:" - A one-line statement capturing the essence of the client's journey
+
+            5. "Neuro Change Method™: Your 4-Phase Transformation Journey"
+               Include these four phases with specific focus areas, tools, and expected outcomes for this client:
+               - 🧠 Phase 1: Consciousness (weeks 1-3)
+               - 🧠 Phase 2: Mindset & Neuroplasticity (weeks 4-6)
+               - 🧠 Phase 3: Subconscious Reprogramming (weeks 7-9)
+               - 🧠 Phase 4: Permanent Integration (weeks 10-12)
+
+            6. "12-Week Milestone Map" - Create a table with these columns:
+               Milestone | Target Week | Tools & Focus
+               Include 6 specific, measurable milestones spread across the 12-week program
+
+            7. "Projected Transformation Outcomes" - A bulleted list (●) of 4-6 specific, measurable outcomes the client can expect
+
+            8. End with a powerful closing statement about the client's potential for transformation
+
+            9. "Practitioner Notes" - Include assessment of client temperament, communication style, and best practices for working with this specific client
+
+            FORMAT REQUIREMENTS:
+            - Maintain professional, warm, and empathetic language throughout
+            - Ensure proper formatting with clear section headers
+            - Balance being direct about challenges while maintaining an empowering tone
+            - Use bullet points (●) for lists
+            - Separate the two reports with "---DOCUMENT_SEPARATOR---"
+
+            Both reports should feel deeply personalized to the client's specific situation, not generic. The client should feel understood, and the practitioner should receive actionable clinical insights.
+        `;
 
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [{ role: 'user', content: prompt }],
+            temperature: 0.5,
             max_tokens: 4000,
         });
 

@@ -59,7 +59,6 @@ const formSchema = z.object({
     }),
 });
 
-// Type for form data based on schema
 type FormData = z.infer<typeof formSchema>;
 
 export default function Home() {
@@ -94,20 +93,20 @@ export default function Home() {
     }
   };
 
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const sanitizedData = Object.entries(formData).reduce((acc, [key, value]) => {
-      acc[key] = typeof value === 'string' ? DOMPurify.sanitize(value.trim()) : value;
+    const trimmedData = Object.entries(formData).reduce((acc, [key, value]) => {
+      acc[key] = typeof value === 'string' ? value.trim() : value;
       return acc;
     }, {} as Record<string, any>);
     
     try {
-      formSchema.parse(sanitizedData);
+      formSchema.parse(trimmedData);
       setValidationErrors({});
     } catch (err) {
       if (err instanceof z.ZodError) {
-        // Format and set validation errors
         const errors: Record<string, string> = {};
         err.errors.forEach((error: any) => {
           if (error.path) {
@@ -121,12 +120,12 @@ export default function Home() {
     
     setLoading(true);
     setError('');
-
+  
     try {
       const response = await fetch('/api/generate-reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sanitizedData),
+        body: JSON.stringify(trimmedData),
       });
   
       if (!response.ok) {
@@ -156,7 +155,7 @@ export default function Home() {
       
       const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
       setPractitionerPdfUrl(practitionerUrl);
-
+  
       setFormData({
         firstName: '',
         email: '',
@@ -210,7 +209,7 @@ export default function Home() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-              <label className="block text-sm font-medium text-gray-600">First Name</label>
+              <label htmlFor='firstName' className="block text-sm font-medium text-gray-600">First Name</label>
             <input
               type="text"
               name="firstName"
@@ -224,7 +223,7 @@ export default function Home() {
               )}
           </div>
           <div>
-              <label className="block text-sm font-medium text-gray-600">Email</label>
+              <label htmlFor='email' className="block text-sm font-medium text-gray-600">Email</label>
             <input
               type="email"
               name="email"
@@ -241,7 +240,7 @@ export default function Home() {
           
           <div className="space-y-4">
           <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label htmlFor='ques1' className="block text-sm font-medium text-gray-600">
               Where are you right now in your life, emotionally and mentally?
             </label>
             <textarea
@@ -256,7 +255,7 @@ export default function Home() {
               )}
           </div>
           <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label htmlFor='ques2' className="block text-sm font-medium text-gray-600">
                 What is something you deeply want—but haven't yet achieved?
             </label>
             <textarea
@@ -271,7 +270,7 @@ export default function Home() {
               )}
           </div>
           <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label htmlFor='ques3' className="block text-sm font-medium text-gray-600">
               What recurring thoughts, fears, or beliefs do you find yourself struggling with?
             </label>
             <textarea
@@ -286,7 +285,7 @@ export default function Home() {
               )}
           </div>
           <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label htmlFor='ques4' className="block text-sm font-medium text-gray-600">
               When was the last time you felt truly aligned—with yourself, your goals, or your life?
             </label>
             <textarea
@@ -301,7 +300,7 @@ export default function Home() {
               )}
           </div>
           <div>
-              <label className="block text-sm font-medium text-gray-600">
+              <label htmlFor='ques5' className="block text-sm font-medium text-gray-600">
               If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?
             </label>
             <textarea
