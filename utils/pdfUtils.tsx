@@ -1,27 +1,22 @@
-// app/utils/pdfUtils.ts
 import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';
 import { createTw } from 'react-pdf-tailwind';
 import React from 'react';
 
 const tw = createTw({});
 
+// Improved styles with better structure
 const styles = StyleSheet.create({
   page: {
     padding: 40,
     fontFamily: 'Helvetica',
     position: 'relative',
-    // width: '100%',
-    // height: '100%',
   },
   fullWidthBanner: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
-    width: '100vw',
-    marginTop: 0,
-    marginLeft: -40,
-    marginRight: -40,
+    width: '100%',
     height: 240,
   },
   bannerImage: {
@@ -176,8 +171,8 @@ const styles = StyleSheet.create({
 });
 
 // Custom Page component with banner
-const PageWithBanner = ({ children, size }: { children: React.ReactNode, size: any }) => (
-  <Page size="A4" style={styles.page} wrap={false}>
+const PageWithBanner = ({ children, size = "A4" }) => (
+  <Page size={size} style={styles.page} wrap={false}>
     <View style={styles.fullWidthBanner} fixed>
       <Image
         src="/banner.png"
@@ -191,281 +186,127 @@ const PageWithBanner = ({ children, size }: { children: React.ReactNode, size: a
   </Page>
 );
 
-// Function to process text content and handle special formatting
-const processText = (text: string) => {
-  // Replace emoji placeholders with actual emojis
-  let processedText = text
-    .replace(/🧠/g, '🧠')
-    .replace(/💡/g, '💡')
-    .replace(/💎/g, '💎')
-    .replace(/📅/g, '📅')
-    .replace(/🧭/g, '🧭');
-    
-  // Remove markdown-style formatting that can't be rendered
-  processedText = processedText
-    .replace(/\*\*/g, '') // Remove ** markdown for bold
-    .replace(/\*/g, '')   // Remove * markdown for italic
-    .replace(/\_\_/g, '') // Remove __ markdown for bold
-    .replace(/\_/g, '');  // Remove _ markdown for italic
+// Clean text of special characters and emojis
+const cleanText = (text) => {
+  if (!text) return '';
   
-  return processedText;
+  return text
+    .replace(/🧠|💡|💎|📅|🧭/g, '') // Remove emojis
+    .replace(/\*\*|\*|\_\_|\_/g, '') // Remove markdown formatting
+    .trim();
 };
 
-// Render text with proper formatting for bold/emphasized sections
-const renderFormattedText = (text: string) => {
-  if (!text) return null;
-
-  // Process special formatting like bold, italic with React-PDF compatible elements
-  const parts = [];
-  let currentText = '';
-  let inBold = false;
-  let inItalic = false;
-  
-  // Process the text character by character
-  for (let i = 0; i < text.length; i++) {
-    // Check for bold markdown
-    if (i < text.length - 1 && text.substr(i, 2) === '**') {
-      if (currentText) {
-        parts.push(inBold ? 
-          <Text key={parts.length} style={styles.boldText}>{currentText}</Text> : 
-          <Text key={parts.length}>{currentText}</Text>
-        );
-        currentText = '';
-      }
-      inBold = !inBold;
-      i++; // Skip the second *
-      continue;
-    }
-    
-    // Check for italic markdown
-    if (text[i] === '*') {
-      if (currentText) {
-        parts.push(inItalic ? 
-          <Text key={parts.length} style={styles.italicText}>{currentText}</Text> : 
-          <Text key={parts.length}>{currentText}</Text>
-        );
-        currentText = '';
-      }
-      inItalic = !inItalic;
-      continue;
-    }
-    
-    currentText += text[i];
-  }
-  
-  // Add any remaining text
-  if (currentText) {
-    parts.push(inBold ? 
-      <Text key={parts.length} style={styles.boldText}>{currentText}</Text> : 
-      inItalic ? 
-        <Text key={parts.length} style={styles.italicText}>{currentText}</Text> : 
-        <Text key={parts.length}>{currentText}</Text>
-    );
-  }
-  
-  return parts.length ? <Text>{parts}</Text> : null;
+// Structured data types for sections
+type Section = {
+  type: 'section' | 'question' | 'subsection' | 'bullet' | 'highlight' | 'phase' | 'normal';
+  title?: string;
+  content?: string;
+  items?: string[];
 };
 
-const parseSection = (section: string, index: number | string) => {
-  // Clean the section of any markdown-style formatting if needed
-  const cleanSection = section.replace(/^\s*[\*_]+\s*|\s*[\*_]+\s*$/g, '');
-  
-  // Bullet points
-  if (cleanSection.trim().startsWith('●')) {
-    return (
-      <View key={index} style={styles.bulletRow}>
-        <Text style={styles.bulletMarker}>●</Text>
-        <Text style={styles.bulletPoint}>
-          {processText(cleanSection.replace('●', '').trim())}
-        </Text>
-      </View>
-    );
-  }
-
-  // Markdown-style bullet points
-  if (cleanSection.trim().startsWith('-')) {
-    return (
-      <View key={index} style={styles.bulletRow}>
-        <Text style={styles.bulletMarker}>•</Text>
-        <Text style={styles.bulletPoint}>
-          {processText(cleanSection.replace('-', '').trim())}
-        </Text>
-      </View>
-    );
-  }
-  
-  // Check if it's a phase section
-  if (cleanSection.trim().startsWith('🧠 Phase')) {
-    const lines = cleanSection.split('\n');
-    const phaseTitle = lines[0];
-    const phaseContent = lines.slice(1).join('\n');
-    
-    return (
-      <View key={index} style={{ marginBottom: 10 }}>
-        <Text style={styles.phaseTitle}>{processText(phaseTitle)}</Text>
-        <Text style={styles.phaseContent}>{processText(phaseContent)}</Text>
-      </View>
-    );
-  }
-  
-  // Check if it's a highlight section
-  if (cleanSection.includes('💡 What the Neuro Change Method™ Can Do for You') ||
-    cleanSection.includes('💎 Why Now, Why You, and Why a Neuro Change Practitioner?')) {
-    const parts = cleanSection.split('\n');
-    const title = parts[0];
-    const content = parts.slice(1).join('\n');
-    
-    return (
-      <View key={index} style={styles.highlightBox}>
-        <Text style={styles.highlightTitle}>{processText(title)}</Text>
-        <Text style={styles.highlightText}>{processText(content)}</Text>
-      </View>
-    );
-  }
-  
-  // Check if it's a client response section
-  if (cleanSection.startsWith('Client Response:')) {
-    return (
-      <View key={index} style={{ marginBottom: 8, marginLeft: 10 }}>
-        <Text style={styles.italicText}>{processText(cleanSection)}</Text>
-      </View>
-    );
-  }
-
-  // Check if it's a DreamScape AI insight section
-  if (cleanSection.startsWith('DreamScape AI Insight:')) {
-    const parts = cleanSection.split('\n');
-    const title = parts[0];
-    const content = parts.slice(1).join('\n');
-
-    return (
-      <View key={index} style={{ marginBottom: 15 }}>
-        <Text style={styles.subsectionTitle}>{processText(title)}</Text>
-        <Text style={styles.normalText}>{processText(content)}</Text>
-      </View>
-    );
-  }
-
-  // Check if it's a main section title
-  if (cleanSection.startsWith('Client Summary') ||
-    cleanSection.startsWith('Primary Objective:') ||
-    cleanSection.startsWith('Key Barriers:') ||
-    cleanSection.startsWith('Transformation Theme:') ||
-    cleanSection.startsWith('Projected Transformation Outcomes') ||
-    cleanSection.startsWith('Practitioner Notes')) {
-    const lines = cleanSection.split('\n');
-    const title = lines[0];
-    const content = lines.slice(1).join('\n');
-    
-    return (
-      <View key={index} style={{ marginBottom: 10 }}>
-        <Text style={styles.sectionTitle}>{processText(title)}</Text>
-        <Text style={styles.normalText}>{processText(content)}</Text>
-      </View>
-    );
-  }
-
-  // Check if it's a question (numeric prefix)
-  if (/^\d+\.\s/.test(cleanSection)) {
-    const lines = cleanSection.split('\n');
-    const title = lines[0];
-    const content = lines.slice(1).join('\n');
-
-    return (
-      <View key={index} style={{ marginBottom: 10 }}>
-        <Text style={styles.questionTitle}>{processText(title)}</Text>
-        <Text style={styles.normalText}>{processText(content)}</Text>
-      </View>
-    );
-  }
-  
-  // Default case - regular paragraph
-  return (
-    <Text key={index} style={styles.normalText}>
-      {processText(cleanSection)}
-    </Text>
-  );
+type MilestoneItem = {
+  milestone: string;
+  targetWeek: string;
+  toolsAndFocus: string;
 };
 
-// Build a milestone table if present in the content
-const buildMilestoneTable = (sections: string[]) => {
-  const milestoneSection = sections.find((s: string) => s.includes('12-Week Milestone Map'));
-  
-  if (!milestoneSection) return null;
-  
-  // Extract table content from the section
-  const tableLines = milestoneSection.split('\n').slice(1);
-  
-  // Find where table header is
-  const headerIndex = tableLines.findIndex((line: string) =>
-    line.includes('Milestone') && line.includes('Target Week') && line.includes('Tools & Focus'));
-  
-  if (headerIndex === -1) return null;
-  
-  // Extract and format table data
-  const tableData = tableLines.slice(headerIndex + 1)
-    .filter((line: string) => line.trim() !== '')
-    .map((line: string) => {
-      const parts = line.split('|');
-      if (parts.length < 3) return [line.trim(), '', ''];
-      return [parts[0].trim(), parts[1].trim(), parts[2].trim()];
-    });
-
-  return (
-    <View style={{ marginVertical: 15 }}>
-      <Text style={styles.sectionTitle}>12-Week Milestone Map</Text>
-      <View style={styles.tableHeader}>
-        <Text style={styles.tableCellHeader}>Milestone</Text>
-        <Text style={styles.tableCellHeader}>Target Week</Text>
-        <Text style={styles.tableCellHeader}>Tools & Focus</Text>
-      </View>
-      {tableData.map((row: string[], i: number) => (
-        <View key={i} style={styles.tableRow}>
-          <Text style={styles.tableCell}>{processText(row[0])}</Text>
-          <Text style={styles.tableCell}>{processText(row[1])}</Text>
-          <Text style={styles.tableCell}>{processText(row[2])}</Text>
+// Build content from structured data
+const renderSection = (section: Section, key: string | number) => {
+  switch (section.type) {
+    case 'section':
+      return (
+        <View key={key} style={{ marginBottom: 10 }}>
+          <Text style={styles.sectionTitle}>{section.title}</Text>
+          {section.content && <Text style={styles.normalText}>{section.content}</Text>}
+          {section.items && section.items.map((item, idx) => (
+            <View key={`${key}_item_${idx}`} style={styles.bulletRow}>
+              <Text style={styles.bulletMarker}>•</Text>
+              <Text style={styles.bulletPoint}>{item}</Text>
+            </View>
+          ))}
         </View>
-      ))}
-    </View>
-  );
+      );
+      
+    case 'question':
+      return (
+        <View key={key} style={{ marginBottom: 10 }}>
+          <Text style={styles.questionTitle}>{section.title}</Text>
+          {section.content && <Text style={styles.normalText}>{section.content}</Text>}
+        </View>
+      );
+      
+    case 'subsection':
+      return (
+        <View key={key} style={{ marginBottom: 8 }}>
+          <Text style={styles.subsectionTitle}>{section.title}</Text>
+          {section.content && <Text style={styles.normalText}>{section.content}</Text>}
+        </View>
+      );
+      
+    case 'bullet':
+      return (
+        <View key={key} style={styles.bulletRow}>
+          <Text style={styles.bulletMarker}>•</Text>
+          <Text style={styles.bulletPoint}>{section.content}</Text>
+        </View>
+      );
+      
+    case 'highlight':
+      return (
+        <View key={key} style={styles.highlightBox}>
+          <Text style={styles.highlightTitle}>{section.title}</Text>
+          <Text style={styles.highlightText}>{section.content}</Text>
+        </View>
+      );
+      
+    case 'phase':
+      return (
+        <View key={key} style={{ marginBottom: 10 }}>
+          <Text style={styles.phaseTitle}>{section.title}</Text>
+          <Text style={styles.phaseContent}>{section.content}</Text>
+        </View>
+      );
+      
+    case 'normal':
+    default:
+      return (
+        <Text key={key} style={styles.normalText}>{section.content}</Text>
+      );
+  }
 };
 
-// Split content into pages with better control over section breaks
-const splitContentIntoPages = (sections: string[], maxSectionsPerPage: number = 6) => {
-  const pages = [];
-  let currentPage = [];
-  let currentLength = 0;
-  const MAX_LENGTH_PER_PAGE = 2500; // Approximate character limit per page
+// Render milestone table
+const renderMilestoneTable = (milestones: MilestoneItem[]) => (
+  <View style={{ marginVertical: 15 }}>
+    <Text style={styles.sectionTitle}>12-Week Milestone Map</Text>
+    <View style={styles.tableHeader}>
+      <Text style={styles.tableCellHeader}>Milestone</Text>
+      <Text style={styles.tableCellHeader}>Target Week</Text>
+      <Text style={styles.tableCellHeader}>Tools & Focus</Text>
+    </View>
+    {milestones.map((milestone, i) => (
+      <View key={i} style={styles.tableRow}>
+        <Text style={styles.tableCell}>{milestone.milestone}</Text>
+        <Text style={styles.tableCell}>{milestone.targetWeek}</Text>
+        <Text style={styles.tableCell}>{milestone.toolsAndFocus}</Text>
+      </View>
+    ))}
+  </View>
+);
+
+// Group sections into pages
+const groupSectionsIntoPages = (sections: Section[], maxSectionsPerPage: number = 6) => {
+  const pages: Section[][] = [];
+  let currentPage: Section[] = [];
   
   for (const section of sections) {
-    // Check if this is a large section that might need special handling
-    const sectionLength = section.length;
-    
-    // If the current section is very large or current page is getting full, start a new page
-    if ((currentLength > 0 && (currentLength + sectionLength > MAX_LENGTH_PER_PAGE)) || 
-        currentPage.length >= maxSectionsPerPage) {
+    // Check if we need to start a new page
+    if (currentPage.length >= maxSectionsPerPage) {
       pages.push([...currentPage]);
       currentPage = [];
-      currentLength = 0;
     }
     
-    // Special handling for very large sections that should be on their own page
-    if (sectionLength > MAX_LENGTH_PER_PAGE) {
-      // If we have content waiting to be added to a page, add it first
-      if (currentPage.length > 0) {
-        pages.push([...currentPage]);
-        currentPage = [];
-        currentLength = 0;
-      }
-      
-      // Add the large section as its own page
-      pages.push([section]);
-      continue;
-    }
-    
-    // Add normal section to current page
     currentPage.push(section);
-    currentLength += sectionLength;
   }
   
   // Add any remaining sections
@@ -476,9 +317,185 @@ const splitContentIntoPages = (sections: string[], maxSectionsPerPage: number = 
   return pages;
 };
 
-export const generateClientPDF = async (firstName: string, clientSections: string[]) => {
-  // Split content into pages
-  const contentPages = splitContentIntoPages(clientSections);
+// Parse raw content into structured data format for client report
+const parseClientContent = (content: string) => {
+  // This is where OpenAI could provide structured JSON instead of raw text
+  // For now, we'll parse the content based on some expected patterns
+  
+  const sections: Section[] = [];
+  const lines = content.split('\n');
+  
+  let currentSection: Section | null = null;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (!line) continue;
+    
+    // Detect section types based on content patterns
+    if (line.match(/^Client Response:/)) {
+      if (currentSection) sections.push(currentSection);
+      currentSection = {
+        type: 'normal',
+        content: line
+      };
+      sections.push(currentSection);
+      currentSection = null;
+    }
+    else if (line.match(/^DreamScape AI Insight:/)) {
+      currentSection = {
+        type: 'subsection',
+        title: line,
+        content: ''
+      };
+    }
+    else if (line.match(/^💡 What the Neuro Change Method™ Can Do for You/)) {
+      if (currentSection) sections.push(currentSection);
+      currentSection = {
+        type: 'highlight',
+        title: line,
+        content: ''
+      };
+    }
+    else if (line.match(/^💎 Why Now, Why You, and Why a Neuro Change Practitioner\?/)) {
+      if (currentSection) sections.push(currentSection);
+      currentSection = {
+        type: 'highlight',
+        title: line,
+        content: ''
+      };
+    }
+    else if (line.match(/^\d+\./)) {
+      if (currentSection) sections.push(currentSection);
+      currentSection = {
+        type: 'question',
+        title: line,
+        content: ''
+      };
+    }
+    else if (currentSection) {
+      // Add content to current section
+      currentSection.content = currentSection.content 
+        ? `${currentSection.content}\n${line}` 
+        : line;
+    }
+    else {
+      // Create a new normal text section
+      currentSection = {
+        type: 'normal',
+        content: line
+      };
+    }
+  }
+  
+  // Add final section if exists
+  if (currentSection) sections.push(currentSection);
+  
+  return sections;
+};
+
+// Parse raw content into structured data format for practitioner report
+const parsePractitionerContent = (content: string) => {
+  const sections: Section[] = [];
+  const lines = content.split('\n');
+  
+  let currentSection: Section | null = null;
+  let milestones: MilestoneItem[] = [];
+  let inMilestoneTable = false;
+  
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    
+    if (!line) continue;
+    
+    if (line.match(/^Client Summary/) || 
+        line.match(/^Primary Objective:/) ||
+        line.match(/^Key Barriers:/) ||
+        line.match(/^Transformation Theme:/) ||
+        line.match(/^Projected Transformation Outcomes/) ||
+        line.match(/^Practitioner Notes/)) {
+      
+      if (currentSection) sections.push(currentSection);
+      
+      currentSection = {
+        type: 'section',
+        title: line,
+        content: '',
+        items: []
+      };
+    }
+    else if (line.match(/^🧠 Phase \d+:/)) {
+      if (currentSection) sections.push(currentSection);
+      
+      currentSection = {
+        type: 'phase',
+        title: line,
+        content: ''
+      };
+    }
+    else if (line.match(/^12-Week Milestone Map/)) {
+      if (currentSection) sections.push(currentSection);
+      
+      inMilestoneTable = true;
+      currentSection = null;
+    }
+    else if (inMilestoneTable) {
+      // Parse milestone table rows
+      if (line.includes('|')) {
+        const parts = line.split('|').map(p => p.trim());
+        
+        if (parts.length >= 3 && !line.includes('Milestone') && !line.includes('---')) {
+          milestones.push({
+            milestone: parts[0],
+            targetWeek: parts[1],
+            toolsAndFocus: parts[2]
+          });
+        }
+      }
+      else if (milestones.length > 0) {
+        // End of milestone table
+        inMilestoneTable = false;
+      }
+    }
+    else if (line.startsWith('●')) {
+      // Bullet point
+      if (currentSection && currentSection.items) {
+        currentSection.items.push(line.replace('●', '').trim());
+      } else {
+        sections.push({
+          type: 'bullet',
+          content: line.replace('●', '').trim()
+        });
+      }
+    }
+    else if (currentSection) {
+      // Add content to current section
+      currentSection.content = currentSection.content 
+        ? `${currentSection.content}\n${line}` 
+        : line;
+    }
+    else {
+      // Create a new normal text section
+      currentSection = {
+        type: 'normal',
+        content: line
+      };
+    }
+  }
+  
+  // Add final section if exists
+  if (currentSection) sections.push(currentSection);
+  
+  return { sections, milestones };
+};
+
+// Main export functions
+export const generateClientPDF = async (firstName: string, clientContent: string) => {
+  // Parse the raw content into structured data
+  const sections = parseClientContent(clientContent);
+  
+  // Group sections into pages
+  const pagesContent = groupSectionsIntoPages(sections);
   
   const ClientPDF = (
     <Document>
@@ -486,15 +503,15 @@ export const generateClientPDF = async (firstName: string, clientSections: strin
         <Text style={styles.reportTitle}>Client Assessment Report for {firstName}</Text>
         <Text style={styles.subtitle}>Prepared by DreamScape AI</Text>
 
-        {contentPages[0]?.map((section, index) =>
-          parseSection(section, `client_first_page_${index}`)
+        {pagesContent[0]?.map((section, index) =>
+          renderSection(section, `client_first_page_${index}`)
         )}
       </PageWithBanner>
       
-      {contentPages.slice(1).map((pageSections, pageIndex) => (
+      {pagesContent.slice(1).map((pageSections, pageIndex) => (
         <PageWithBanner key={`client_page_${pageIndex + 1}`} size="A4">
           {pageSections.map((section, sectionIndex) =>
-            parseSection(section, `client_page${pageIndex + 1}_section${sectionIndex}`)
+            renderSection(section, `client_page${pageIndex + 1}_section${sectionIndex}`)
           )}
         </PageWithBanner>
       ))}
@@ -504,48 +521,37 @@ export const generateClientPDF = async (firstName: string, clientSections: strin
   return await pdf(ClientPDF).toBlob();
 };
 
-export const generatePractitionerPDF = async (firstName: string, practitionerSections: string[]) => {
-  // Find milestone table section and remove it from the main content
-  const milestoneTableIndex = practitionerSections.findIndex(s => s.includes('12-Week Milestone Map'));
-  let milestoneTableSection = null;
+export const generatePractitionerPDF = async (firstName: string, practitionerContent: string) => {
+  // Parse the raw content into structured data
+  const { sections, milestones } = parsePractitionerContent(practitionerContent);
   
-  if (milestoneTableIndex !== -1) {
-    milestoneTableSection = practitionerSections[milestoneTableIndex];
-    practitionerSections = [
-      ...practitionerSections.slice(0, milestoneTableIndex),
-      ...practitionerSections.slice(milestoneTableIndex + 1)
-    ];
-  }
-  
-  // Ensure reasonable page breaks
-  const contentPages = splitContentIntoPages(practitionerSections, 5); // Fewer sections per page for practitioner
-  
-  // Add milestone table to its own page at the end
-  if (milestoneTableSection) {
-    contentPages.push([milestoneTableSection]);
-  }
+  // Group sections into pages - fewer sections per page for practitioner report
+  const pagesContent = groupSectionsIntoPages(sections, 5);
   
   const PractitionerPDF = (
     <Document>
       <PageWithBanner size="A4">
         <Text style={styles.reportTitle}>🧭 Practitioner Case Report: {firstName}</Text>
         
-        {contentPages[0]?.map((section, index) =>
-          parseSection(section, `prac_first_page_${index}`)
+        {pagesContent[0]?.map((section, index) =>
+          renderSection(section, `prac_first_page_${index}`)
         )}
       </PageWithBanner>
       
-      {contentPages.slice(1).map((pageSections, pageIndex) => (
+      {pagesContent.slice(1).map((pageSections, pageIndex) => (
         <PageWithBanner key={`prac_page_${pageIndex + 1}`} size="A4">
-          {pageSections.map((section, sectionIndex) => {
-            // Special handling for milestone table
-            if (section === milestoneTableSection) {
-              return buildMilestoneTable([section]);
-            }
-            return parseSection(section, `prac_page${pageIndex + 1}_section${sectionIndex}`);
-          })}
+          {pageSections.map((section, sectionIndex) =>
+            renderSection(section, `prac_page${pageIndex + 1}_section${sectionIndex}`)
+          )}
         </PageWithBanner>
       ))}
+      
+      {/* Add milestone table on its own page */}
+      {milestones.length > 0 && (
+        <PageWithBanner key="milestone_page" size="A4">
+          {renderMilestoneTable(milestones)}
+        </PageWithBanner>
+      )}
     </Document>
   );
 

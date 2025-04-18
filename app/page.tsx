@@ -4,7 +4,7 @@ import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { generateClientPDF, generatePractitionerPDF } from '@/utils/pdfUtils';
+import { generateClientPDF, generatePractitionerPDF } from '@/utils/structuredPdfUtils';
 
 const formSchema = z.object({
   firstName: z
@@ -78,6 +78,8 @@ const formSchemaWithDuplicateCheck = formSchema.superRefine((data, ctx) => {
   }
 });
 
+const questions=["1. Where are you right now in your life, emotionally and mentally?*","2. What is something you deeply want—but haven't yet achieved?*","3. What recurring thoughts, fears, or beliefs do you find yourself struggling with?*","4. When was the last time you felt truly aligned—with yourself, your goals, or your life?*","5. If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?*"]
+
 export default function Home() {
   const { 
     control, 
@@ -147,25 +149,8 @@ export default function Home() {
       
       setGenerating(true);
       
-      const parseContent = (content: string) => {
-        let sections = content.split('\n\n');
-        
-        if (sections.length < 3) {
-          sections = content.split('\n').filter(line => line.trim().length > 0);
-        }
-        
-        if (sections.length < 3) {
-          sections = content.split(/^#+\s+/m);
-        }
-        
-        return sections.filter(Boolean).map((section: string) => section.trim());
-      };
-      
-      const clientSections = parseContent(clientContent);
-      const practitionerSections = parseContent(practitionerContent);
-      
-      const clientBlob = await generateClientPDF(firstName, clientSections);
-      const practitionerBlob = await generatePractitionerPDF(firstName, practitionerSections);
+      const clientBlob = await generateClientPDF(firstName, clientContent);
+      const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
       
       const clientUrl = window.URL.createObjectURL(clientBlob);
       setClientPdfUrl(clientUrl);
@@ -282,17 +267,18 @@ export default function Home() {
             </div>
           </div>
           
-          <div className="space-y-4">
-            <div>
-              <label htmlFor='ques1' className="block text-sm font-medium text-gray-600">
-                Where are you right now in your life, emotionally and mentally?
+          {/* Questions Inputs for the User */}
+          {questions.map((question, index) => (
+            <div key={index}>
+              <label htmlFor={`ques${index + 1}`} className="block text-sm font-medium text-gray-600">
+                {question}
               </label>
               <Controller
-                name="ques1"
+                name={`ques${index + 1}` as keyof FormDataWithDuplicateCheck}
                 control={control}
                 render={({ field }) => (
                   <textarea
-                    id="ques1"
+                    id={`ques${index + 1}`}
                     aria-invalid={errors.ques1 ? "true" : "false"}
                     aria-describedby={errors.ques1 ? "ques1-error" : undefined}
                     className={`mt-1 block w-full p-2 border ${errors.ques1 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
@@ -304,91 +290,7 @@ export default function Home() {
                 <p id="ques1-error" className="mt-1 text-sm text-red-500">{errors.ques1.message}</p>
               )}
             </div>
-            <div>
-              <label htmlFor='ques2' className="block text-sm font-medium text-gray-600">
-                What is something you deeply want—but haven't yet achieved?
-              </label>
-              <Controller
-                name="ques2"
-                control={control}
-                render={({ field }) => (
-                  <textarea
-                    id="ques2"
-                    aria-invalid={errors.ques2 ? "true" : "false"}
-                    aria-describedby={errors.ques2 ? "ques2-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.ques2 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-                    {...field}
-                  />
-                )}
-              />
-              {errors.ques2 && (
-                <p id="ques2-error" className="mt-1 text-sm text-red-500">{errors.ques2.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor='ques3' className="block text-sm font-medium text-gray-600">
-                What recurring thoughts, fears, or beliefs do you find yourself struggling with?
-              </label>
-              <Controller
-                name="ques3"
-                control={control}
-                render={({ field }) => (
-                  <textarea
-                    id="ques3"
-                    aria-invalid={errors.ques3 ? "true" : "false"}
-                    aria-describedby={errors.ques3 ? "ques3-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.ques3 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-                    {...field}
-                  />
-                )}
-              />
-              {errors.ques3 && (
-                <p id="ques3-error" className="mt-1 text-sm text-red-500">{errors.ques3.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor='ques4' className="block text-sm font-medium text-gray-600">
-                When was the last time you felt truly aligned—with yourself, your goals, or your life?
-              </label>
-              <Controller
-                name="ques4"
-                control={control}
-                render={({ field }) => (
-                  <textarea
-                    id="ques4"
-                    aria-invalid={errors.ques4 ? "true" : "false"}
-                    aria-describedby={errors.ques4 ? "ques4-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.ques4 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-                    {...field}
-                  />
-                )}
-              />
-              {errors.ques4 && (
-                <p id="ques4-error" className="mt-1 text-sm text-red-500">{errors.ques4.message}</p>
-              )}
-            </div>
-            <div>
-              <label htmlFor='ques5' className="block text-sm font-medium text-gray-600">
-                If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?
-              </label>
-              <Controller
-                name="ques5"
-                control={control}
-                render={({ field }) => (
-                  <textarea
-                    id="ques5"
-                    aria-invalid={errors.ques5 ? "true" : "false"}
-                    aria-describedby={errors.ques5 ? "ques5-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.ques5 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-                    {...field}
-                  />
-                )}
-              />
-              {errors.ques5 && (
-                <p id="ques5-error" className="mt-1 text-sm text-red-500">{errors.ques5.message}</p>
-              )}
-            </div>
-          </div>
+          ))}   
           
           {hasDuplicateError && (
             <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">
