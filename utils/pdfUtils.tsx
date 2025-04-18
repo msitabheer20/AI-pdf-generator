@@ -5,7 +5,6 @@ import React from 'react';
 
 const tw = createTw({});
 
-// Create custom styles for PDF elements
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -23,7 +22,7 @@ const styles = StyleSheet.create({
     marginTop: 0,
     marginLeft: -40,
     marginRight: -40,
-    // height: 240,
+    height: 240,
   },
   bannerImage: {
     width: '110%',

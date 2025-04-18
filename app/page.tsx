@@ -1,10 +1,11 @@
 'use client';
-import { generateClientPDF, generatePractitionerPDF } from '@/utils/pdfUtils';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { generateClientPDF, generatePractitionerPDF } from '@/utils/pdfUtils';
 
-// Define the validation schema with Zod with enhanced pattern checks
 const formSchema = z.object({
   firstName: z
     .string()
@@ -59,73 +60,82 @@ const formSchema = z.object({
     }),
 });
 
-type FormData = z.infer<typeof formSchema>;
+type FormDataWithDuplicateCheck = z.infer<typeof formSchema> & {
+  duplicateResponses?: string;
+};
+
+const formSchemaWithDuplicateCheck = formSchema.superRefine((data, ctx) => {
+  const responses = [data.ques1, data.ques2, data.ques3, data.ques4, data.ques5];
+  const trimmedResponses = responses.map(response => response.trim().toLowerCase());
+  const uniqueResponses = new Set(trimmedResponses);
+  
+  if (uniqueResponses.size !== responses.length) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Please provide unique answers for each question. Some of your responses appear to be identical.",
+      path: ["duplicateResponses"]
+    });
+  }
+});
 
 export default function Home() {
-  const [formData, setFormData] = useState<FormData>({
-    firstName: '',
-    email: '',
-    ques1: '',
-    ques2: '',
-    ques3: '',
-    ques4: '',
-    ques5: '',
+  const { 
+    control, 
+    handleSubmit: hookFormSubmit, 
+    formState: { errors, isValid, isDirty },
+    getValues,
+    reset
+  } = useForm<FormDataWithDuplicateCheck>({
+    resolver: zodResolver(formSchemaWithDuplicateCheck),
+    mode: 'onChange',
+    defaultValues: {
+      firstName: '',
+      email: '',
+      ques1: '',
+      ques2: '',
+      ques3: '',
+      ques4: '',
+      ques5: '',
+    }
   });
+
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [clientPdfUrl, setClientPdfUrl] = useState('');
   const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
   const [error, setError] = useState('');
-  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [retryMode, setRetryMode] = useState(false);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    const sanitizedValue = DOMPurify.sanitize(value);
-    
-    setFormData({ ...formData, [name]: sanitizedValue });
-    
-    if (validationErrors[name]) {
-      setValidationErrors(prev => {
-        const updated = { ...prev };
-        delete updated[name];
-        return updated;
-      });
+  useEffect(() => {
+    if (showConfirmation) {
+      setClientPdfUrl('');
+      setPractitionerPdfUrl('');
     }
+  }, [showConfirmation]);
+
+  const onSubmit = (data: FormDataWithDuplicateCheck) => {
+    setShowConfirmation(true);
   };
 
-  
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    const trimmedData = Object.entries(formData).reduce((acc, [key, value]) => {
-      acc[key] = typeof value === 'string' ? value.trim() : value;
-      return acc;
-    }, {} as Record<string, any>);
-    
-    try {
-      formSchema.parse(trimmedData);
-      setValidationErrors({});
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        const errors: Record<string, string> = {};
-        err.errors.forEach((error: any) => {
-          if (error.path) {
-            errors[error.path[0]] = error.message;
-          }
-        });
-        setValidationErrors(errors);
-        return;
-      }
-    }
-    
+  const handleConfirmedSubmit = async () => {
+    setShowConfirmation(false);
     setLoading(true);
     setError('');
+    setRetryMode(false);
   
     try {
+      const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
+        if (key !== 'duplicateResponses' && typeof value === 'string') {
+          acc[key] = DOMPurify.sanitize(value.trim());
+        }
+        return acc;
+      }, {} as Record<string, any>);
+      
       const response = await fetch('/api/generate-reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(trimmedData),
+        body: JSON.stringify(sanitizedData),
       });
   
       if (!response.ok) {
@@ -137,15 +147,22 @@ export default function Home() {
       
       setGenerating(true);
       
-      const clientSections = clientContent
-        .split('\n\n')
-        .filter(Boolean)
-        .map((section: string) => section.trim());
+      const parseContent = (content: string) => {
+        let sections = content.split('\n\n');
         
-      const practitionerSections = practitionerContent
-        .split('\n\n')
-        .filter(Boolean)
-        .map((section: string) => section.trim());
+        if (sections.length < 3) {
+          sections = content.split('\n').filter(line => line.trim().length > 0);
+        }
+        
+        if (sections.length < 3) {
+          sections = content.split(/^#+\s+/m);
+        }
+        
+        return sections.filter(Boolean).map((section: string) => section.trim());
+      };
+      
+      const clientSections = parseContent(clientContent);
+      const practitionerSections = parseContent(practitionerContent);
       
       const clientBlob = await generateClientPDF(firstName, clientSections);
       const practitionerBlob = await generatePractitionerPDF(firstName, practitionerSections);
@@ -156,31 +173,46 @@ export default function Home() {
       const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
       setPractitionerPdfUrl(practitionerUrl);
   
-      setFormData({
-        firstName: '',
-        email: '',
-        ques1: '',
-        ques2: '',
-        ques3: '',
-        ques4: '',
-        ques5: '',
-      });
+      reset();
       
     } catch (err) {
       console.error('Error:', err);
-      setError(err instanceof Error ? err.message : 'An error occurred. Please try again.');
+      setError('An error occurred. Please try again.');
+      setRetryMode(true);
     } finally {
       setLoading(false);
       setGenerating(false);
     }
   };
-  
+
+  const handleButtonClick = () => {
+    if (retryMode) {
+      setError('');
+      handleConfirmedSubmit();
+    } else {
+      hookFormSubmit(onSubmit)();
+    }
+  };
+
+  const handleCancelConfirmation = () => {
+    setShowConfirmation(false);
+  };
+
   useEffect(() => {
     return () => {
       if (clientPdfUrl) window.URL.revokeObjectURL(clientPdfUrl);
       if (practitionerPdfUrl) window.URL.revokeObjectURL(practitionerPdfUrl);
     };
   }, [clientPdfUrl, practitionerPdfUrl]);
+
+  const getButtonText = () => {
+    if (loading) return 'Processing Responses...';
+    if (generating) return 'Generating PDFs...';
+    if (retryMode) return 'Retry Submission';
+    return 'Submit Assessment';
+  };
+
+  const hasDuplicateError = 'duplicateResponses' in errors;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -206,162 +238,248 @@ export default function Home() {
           </div>
         </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={(e) => { e.preventDefault(); handleButtonClick(); }} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
+            <div>
               <label htmlFor='firstName' className="block text-sm font-medium text-gray-600">First Name</label>
-            <input
-              type="text"
-              name="firstName"
-              value={formData.firstName}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
-            />
-              {validationErrors.firstName && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.firstName}</p>
+              <Controller
+                name="firstName"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    id="firstName"
+                    type="text"
+                    aria-invalid={errors.firstName ? "true" : "false"}
+                    aria-describedby={errors.firstName ? "firstName-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.firstName && (
+                <p id="firstName-error" className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>
               )}
-          </div>
-          <div>
+            </div>
+            <div>
               <label htmlFor='email' className="block text-sm font-medium text-gray-600">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
-            />
-              {validationErrors.email && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.email}</p>
+              <Controller
+                name="email"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    id="email"
+                    type="email"
+                    aria-invalid={errors.email ? "true" : "false"}
+                    aria-describedby={errors.email ? "email-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.email && (
+                <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
           </div>
           
           <div className="space-y-4">
-          <div>
+            <div>
               <label htmlFor='ques1' className="block text-sm font-medium text-gray-600">
-              Where are you right now in your life, emotionally and mentally?
-            </label>
-            <textarea
-              name="ques1"
-              value={formData.ques1}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.ques1 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-            />
-              {validationErrors.ques1 && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.ques1}</p>
+                Where are you right now in your life, emotionally and mentally?
+              </label>
+              <Controller
+                name="ques1"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    id="ques1"
+                    aria-invalid={errors.ques1 ? "true" : "false"}
+                    aria-describedby={errors.ques1 ? "ques1-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.ques1 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.ques1 && (
+                <p id="ques1-error" className="mt-1 text-sm text-red-500">{errors.ques1.message}</p>
               )}
-          </div>
-          <div>
+            </div>
+            <div>
               <label htmlFor='ques2' className="block text-sm font-medium text-gray-600">
                 What is something you deeply want—but haven't yet achieved?
-            </label>
-            <textarea
-              name="ques2"
-              value={formData.ques2}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.ques2 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-            />
-              {validationErrors.ques2 && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.ques2}</p>
+              </label>
+              <Controller
+                name="ques2"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    id="ques2"
+                    aria-invalid={errors.ques2 ? "true" : "false"}
+                    aria-describedby={errors.ques2 ? "ques2-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.ques2 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.ques2 && (
+                <p id="ques2-error" className="mt-1 text-sm text-red-500">{errors.ques2.message}</p>
               )}
-          </div>
-          <div>
+            </div>
+            <div>
               <label htmlFor='ques3' className="block text-sm font-medium text-gray-600">
-              What recurring thoughts, fears, or beliefs do you find yourself struggling with?
-            </label>
-            <textarea
-              name="ques3"
-              value={formData.ques3}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.ques3 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-            />
-              {validationErrors.ques3 && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.ques3}</p>
+                What recurring thoughts, fears, or beliefs do you find yourself struggling with?
+              </label>
+              <Controller
+                name="ques3"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    id="ques3"
+                    aria-invalid={errors.ques3 ? "true" : "false"}
+                    aria-describedby={errors.ques3 ? "ques3-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.ques3 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.ques3 && (
+                <p id="ques3-error" className="mt-1 text-sm text-red-500">{errors.ques3.message}</p>
               )}
-          </div>
-          <div>
+            </div>
+            <div>
               <label htmlFor='ques4' className="block text-sm font-medium text-gray-600">
-              When was the last time you felt truly aligned—with yourself, your goals, or your life?
-            </label>
-            <textarea
-              name="ques4"
-              value={formData.ques4}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.ques4 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-            />
-              {validationErrors.ques4 && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.ques4}</p>
+                When was the last time you felt truly aligned—with yourself, your goals, or your life?
+              </label>
+              <Controller
+                name="ques4"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    id="ques4"
+                    aria-invalid={errors.ques4 ? "true" : "false"}
+                    aria-describedby={errors.ques4 ? "ques4-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.ques4 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.ques4 && (
+                <p id="ques4-error" className="mt-1 text-sm text-red-500">{errors.ques4.message}</p>
               )}
-          </div>
-          <div>
+            </div>
+            <div>
               <label htmlFor='ques5' className="block text-sm font-medium text-gray-600">
-              If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?
-            </label>
-            <textarea
-              name="ques5"
-              value={formData.ques5}
-              onChange={handleChange}
-              required
-                className={`mt-1 block w-full p-2 border ${validationErrors.ques5 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
-            />
-              {validationErrors.ques5 && (
-                <p className="mt-1 text-sm text-red-500">{validationErrors.ques5}</p>
+                If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?
+              </label>
+              <Controller
+                name="ques5"
+                control={control}
+                render={({ field }) => (
+                  <textarea
+                    id="ques5"
+                    aria-invalid={errors.ques5 ? "true" : "false"}
+                    aria-describedby={errors.ques5 ? "ques5-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.ques5 ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.ques5 && (
+                <p id="ques5-error" className="mt-1 text-sm text-red-500">{errors.ques5.message}</p>
               )}
             </div>
           </div>
           
+          {hasDuplicateError && (
+            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">
+              Please provide unique answers for each question. Some of your responses appear to be identical.
+            </div>
+          )}
+          
+          {error && (
+            <div className="mt-2 p-3 bg-red-50 text-red-500 rounded-md">
+              <p>{error}</p>
+            </div>
+          )}
+          
           <button
             type="submit"
-            disabled={loading || generating}
+            disabled={loading || generating || (!retryMode && !isValid)}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 rounded-md hover:from-purple-700 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-300 transition-all duration-200 font-medium"
           >
-            {loading ? 'Processing Responses...' : generating ? 'Generating PDFs...' : 'Submit Assessment'}
+            {(loading || generating) ? (
+              <span className="flex items-center justify-center">
+                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                {getButtonText()}
+              </span>
+            ) : (
+              getButtonText()
+            )}
           </button>
         </form>
-        
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 text-red-500 rounded-md">
-            {error}
-          </div>
-        )}
         
         {(clientPdfUrl || practitionerPdfUrl) && (
           <div className="mt-6 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
             <h2 className="text-lg font-medium text-gray-700">Your Assessment Reports</h2>
             <p className="text-sm text-gray-500">Your personalized reports have been generated and are ready for download.</p>
-            
+
             <div className="space-y-2">
               {clientPdfUrl && (
                 <a
                   href={clientPdfUrl}
-                  download={`Client_Assessment_${formData.firstName || 'Report'}.pdf`}
+                  download={`Client_Assessment_${getValues().firstName || 'Report'}.pdf`}
                   className="flex items-center justify-between px-4 py-3 bg-white text-blue-500 rounded-md border border-blue-100 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
+                  aria-label="Download Client Assessment Report PDF"
                 >
                   <span className="font-medium">Client Assessment Report</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </a>
               )}
-              
+
               {practitionerPdfUrl && (
                 <a
                   href={practitionerPdfUrl}
-                  download={`Practitioner_Report_${formData.firstName || 'Report'}.pdf`}
+                  download={`Practitioner_Report_${getValues().firstName || 'Report'}.pdf`}
                   className="flex items-center justify-between px-4 py-3 bg-white text-purple-500 rounded-md border border-purple-100 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200"
+                  aria-label="Download Practitioner Case Report PDF"
                 >
                   <span className="font-medium">Practitioner Case Report</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </a>
               )}
+            </div>
+          </div>
+        )}
+        
+        {/* Confirmation Modal with dimmer background */}
+        {showConfirmation && (
+          <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
+              <h3 className="text-lg font-medium text-gray-900 mb-3">Confirm Submission</h3>
+              <p className="text-gray-600 mb-4">Are you sure you want to submit your assessment? Your responses will be processed to generate personalized reports.</p>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={handleCancelConfirmation}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleConfirmedSubmit}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-600 to-blue-500 text-white rounded hover:from-purple-700 hover:to-blue-600 transition-colors"
+                >
+                  Submit
+                </button>
+              </div>
             </div>
           </div>
         )}
