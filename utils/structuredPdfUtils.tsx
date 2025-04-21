@@ -1,11 +1,47 @@
-import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, pdf, Font, Svg, Path } from '@react-pdf/renderer';
 import React from 'react';
+
+// Emoji source no longer needed as we're using SVG icons instead
+// Font.registerEmojiSource({
+//   format: 'png',
+//   url: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/',
+//   withVariationSelectors: true,
+// });
+
+
+// SVG Icon Components
+const BulbIcon = () => (
+  <Svg width={16} height={16} viewBox="0 0 24 24">
+    <Path
+      fill="#F1C40F"
+      d="M12 2C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm-1 14h2v1h-2v-1zm0-2h2v1h-2v-1zm1-11c2.76 0 5 2.24 5 5 0 2.05-1.23 3.81-3 4.58V11h-4v1.58c-1.77-.77-3-2.53-3-4.58 0-2.76 2.24-5 5-5z"
+    />
+  </Svg>
+);
+
+const DiamondIcon = () => (
+  <Svg width={14} height={14} viewBox="0 0 24 24">
+    <Path
+      fill="#3498DB"
+      d="M12 2L2 12l10 10 10-10L12 2zm0 15.5L5.5 12 12 5.5l6.5 6.5-6.5 6.5z"
+    />
+  </Svg>
+);
+
+const CalendarIcon = () => (
+  <Svg width={14} height={14} viewBox="0 0 24 24">
+    <Path
+      fill="#27AE60"
+      d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"
+    />
+  </Svg>
+);
 
 // Improved styles with better structure
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Times-Roman',
     position: 'relative',
   },
   fullWidthBanner: {
@@ -67,7 +103,6 @@ const styles = StyleSheet.create({
   },
   openingStatement: {
     fontSize: 12,
-    fontStyle: 'italic',
     color: '#000000',
     marginBottom: 20,
     lineHeight: 1.6,
@@ -96,7 +131,7 @@ const styles = StyleSheet.create({
   },
   normalText: {
     fontSize: 12,
-    lineHeight: 1.6,
+    // lineHeight: 1.6,
     marginBottom: 10,
     color: '#000000',
   },
@@ -111,7 +146,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   bulletPoint: {
-    marginLeft: 15,
+    marginLeft: 10,
     fontSize: 12,
     lineHeight: 1.6,
     color: '#000000',
@@ -122,10 +157,10 @@ const styles = StyleSheet.create({
   },
   bulletMarker: {
     width: 15,
-    fontSize: 12,
+    fontSize: 16,
   },
   highlightBox: {
-    backgroundColor: '#f0f7ff',
+    // backgroundColor: '#f0f7ff',
     padding: 10,
     borderRadius: 5,
     marginVertical: 10,
@@ -195,7 +230,7 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginBottom: 20,
     paddingBottom: 5,
-    borderBottom: '1px solid #EEEEEE',
+    // borderBottom: '1px solid #EEEEEE',
   },
   sectionSeparator: {
     borderBottom: '1px solid #7d7c7c',
@@ -209,7 +244,6 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: '#000000',
     padding: 10,
-    backgroundColor: '#f9f9f9',
     borderRadius: 5,
   }
 });
@@ -253,6 +287,9 @@ const cleanText = (text: string): string => {
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#39;/g, "'")
+    .replace(/&trade;/g, "™")
+    .replace(/&reg;/g, "®")
+    .replace(/&copy;/g, "©")
     .replace(/[^\x00-\x7F]/g, char => {
       // For any non-ASCII character, try to replace with ASCII equivalent when possible
       // or remove if can't be safely replaced
@@ -268,6 +305,12 @@ const cleanText = (text: string): string => {
         case '½': return '1/2';
         case '¼': return '1/4';
         case '¾': return '3/4';
+        case '∞': return 'infinity';
+        case '±': return '+/-';
+        case '≤': return '<=';
+        case '≥': return '>=';
+        case '÷': return '/';
+        case '×': return 'x';
         default: return ' '; // Replace unknown special characters with a space
       }
     });
@@ -328,6 +371,7 @@ type HighlightData = {
   title: string;
   content: string;
   points?: Record<string, string>;
+  closingStatement?: string;
 };
 
 type PhaseData = {
@@ -382,16 +426,16 @@ type PractitionerReport = {
 // Render client response and AI insight
 const renderQuestionSection = (questionData: QuestionData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
-    <Text style={styles.questionTitle}>{cleanText(questionData.title)}</Text>
-    <View style={{ marginBottom: 8, marginLeft: 10 }} wrap>
+    <Text style={styles.questionTitle}>{parseTrademarks(questionData.title)}</Text>
+    <View style={{ marginBottom: 8 }} wrap>
       <Text>
         <Text style={styles.boldText}>Client Response: </Text>
-        <Text style={styles.italicText}>{cleanText(questionData.clientResponse)}</Text>
+        <Text style={styles.italicText}>{parseTrademarks(questionData.clientResponse)}</Text>
       </Text>
     </View>
     <View style={{ marginBottom: 8 }} wrap>
       <Text style={styles.subsectionTitle}>DreamScape AI Reflection:</Text>
-      <Text style={styles.normalText}>{cleanText(questionData.aiInsight)}</Text>
+      <Text style={styles.normalText}>{parseTrademarks(questionData.aiInsight)}</Text>
     </View>
   </View>
 );
@@ -399,27 +443,41 @@ const renderQuestionSection = (questionData: QuestionData, key: string | number)
 // Render highlight section with points
 const renderHighlightSection = (highlightData: HighlightData, key: string | number) => (
   <View key={key} style={styles.highlightBox} wrap>
-    <Text style={styles.highlightTitle}>{cleanText(highlightData.title)}</Text>
-    <Text style={styles.highlightText}>{cleanText(highlightData.content)}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+      <BulbIcon />
+      <Text style={{ ...styles.highlightTitle, marginLeft: 4 }}>{parseTrademarks(highlightData.title)}</Text>
+    </View>
+    <Text style={styles.highlightText}>{parseTrademarks(highlightData.content)}</Text>
 
     {highlightData.points && (
       Array.isArray(highlightData.points) ? (
         highlightData.points.map((point: string, idx: number) => (
           <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
-            {/* <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>{idx === 0 ? '⚡' : '◆'}</Text> */}
-            <Text style={styles.bulletPoint}>{cleanText(point)}</Text>
+            <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
+            <Text style={styles.bulletPoint}>{parseTrademarks(point)}</Text>
           </View>
         ))
       ) : (
-        Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
-          <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
-            <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>{idx === 0 ? '⚡' : '◆'}</Text>
-            <Text style={styles.bulletPoint}>
-              <Text style={styles.boldText}>{cleanText(pointKey)}: </Text>
-              {cleanText(pointValue as string)}
-            </Text>
-          </View>
-        ))
+        <>
+          {Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
+            <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
+              <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
+              <Text style={styles.bulletPoint}>
+                <Text style={styles.boldText}>{parseTrademarks(pointKey)}: </Text>
+                {parseTrademarks(pointValue as string)}
+              </Text>
+            </View>
+          ))}
+          
+          {/* Only display closing statement when points is an object */}
+          {highlightData.closingStatement && (
+            <View style={{ marginTop: 8 }}>
+              <Text style={{ ...styles.highlightText, fontStyle: 'italic' }}>
+                {parseTrademarks(highlightData.closingStatement)}
+              </Text>
+            </View>
+          )}
+        </>
       )
     )}
   </View>
@@ -428,26 +486,26 @@ const renderHighlightSection = (highlightData: HighlightData, key: string | numb
 // Render phase section with items
 const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
-    <Text style={styles.phaseTitle}>{cleanText(phaseData.title)}</Text>
+    <Text style={styles.phaseTitle}>{parseTrademarks(phaseData.title)}</Text>
 
     {phaseData.items && (
       <View style={{ marginLeft: 15 }}>
         {phaseData.items.focus && (
           <Text style={styles.phaseItem}>
             <Text style={{ ...styles.boldText, color: '#333333' }}>Focus: </Text>
-            {cleanText(phaseData.items.focus)}
+            {parseTrademarks(phaseData.items.focus)}
           </Text>
         )}
         {phaseData.items.tools && (
           <Text style={styles.phaseItem}>
             <Text style={{ ...styles.boldText, color: '#333333' }}>Tools: </Text>
-            {cleanText(phaseData.items.tools)}
+            {parseTrademarks(phaseData.items.tools)}
           </Text>
         )}
         {phaseData.items.goal && (
           <Text style={styles.phaseItem}>
             <Text style={{ ...styles.boldText, color: '#333333' }}>Goal: </Text>
-            {cleanText(phaseData.items.goal)}
+            {parseTrademarks(phaseData.items.goal)}
           </Text>
         )}
       </View>
@@ -458,13 +516,13 @@ const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
 // Render section with items (bullet points)
 const renderSectionWithItems = (sectionData: SectionData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
-    <Text style={styles.sectionTitle}>{cleanText(sectionData.title)}</Text>
-    {sectionData.content && <Text style={styles.normalText}>{cleanText(sectionData.content)}</Text>}
+    <Text style={styles.sectionTitle}>{parseTrademarks(sectionData.title)}</Text>
+    {sectionData.content && <Text style={styles.normalText}>{parseTrademarks(sectionData.content)}</Text>}
 
     {sectionData.items && sectionData.items.map((item: string, idx: number) => (
       <View key={`${key}_item_${idx}`} style={styles.bulletRow}>
         <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
-        <Text style={styles.bulletPoint}>{cleanText(item)}</Text>
+        <Text style={styles.bulletPoint}>{parseTrademarks(item)}</Text>
       </View>
     ))}
   </View>
@@ -481,13 +539,67 @@ const renderMilestoneTable = (milestones: MilestoneItem[]) => (
     </View>
     {milestones.map((milestone, i) => (
       <View key={i} style={styles.tableRow}>
-        <Text style={styles.tableCell}>{cleanText(milestone.milestone)}</Text>
-        <Text style={styles.tableCell}>{cleanText(milestone.targetWeek)}</Text>
-        <Text style={styles.tableCell}>{cleanText(milestone.toolsAndFocus)}</Text>
+        <Text style={styles.tableCell}>{parseTrademarks(milestone.milestone)}</Text>
+        <Text style={styles.tableCell}>{parseTrademarks(milestone.targetWeek)}</Text>
+        <Text style={styles.tableCell}>{parseTrademarks(milestone.toolsAndFocus)}</Text>
       </View>
     ))}
   </View>
 );
+
+// Trademark component
+const Trademark = () => (
+  <Text style={{ 
+    fontSize: 8, 
+    verticalAlign: 'super', 
+    position: 'relative', 
+    top: -5,
+    fontFamily: 'Times-Roman',
+    fontWeight: 'bold'
+  }}>TM</Text>
+);
+
+// Registered trademark component
+const RegisteredTrademark = () => (
+  <Text style={{ 
+    fontSize: 8, 
+    verticalAlign: 'super', 
+    position: 'relative', 
+    top: -5,
+    fontFamily: 'Times-Roman',
+    fontWeight: 'bold'
+  }}>®</Text>
+);
+
+// Custom parse function to handle trademark and registered trademark symbols
+const parseTrademarks = (text: string) => {
+  if (!text) return null;
+  
+  // Clean the text first
+  const cleaned = cleanText(text);
+  
+  // Look for trademark symbols
+  if (!cleaned.includes('TM') && !cleaned.includes('(R)')) {
+    return <Text>{cleaned}</Text>;
+  }
+  
+  // Split the text at trademark/registered symbols
+  const parts = cleaned.split(/(TM|\(R\))/g);
+  
+  return (
+    <Text>
+      {parts.map((part, index) => {
+        if (part === 'TM') {
+          return <Trademark key={index} />;
+        } else if (part === '(R)') {
+          return <RegisteredTrademark key={index} />;
+        } else {
+          return part;
+        }
+      })}
+    </Text>
+  );
+};
 
 // Generate client PDF with properly structured data
 export const generateClientPDF = async (firstName: string, clientReport: ClientReport) => {
@@ -499,7 +611,7 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
         {/* Fixed banner at the top */}
         <View style={styles.fullWidthBanner} fixed>
           <Image
-            src="/banner.png"
+            src="/banner1.png"
             style={styles.bannerImage}
             cache={false}
           />
@@ -512,12 +624,14 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
         <View style={styles.contentContainer}>
           {/* Header Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.reportTitle}>{cleanText(report['header-section']?.title || 'Client Assessment Report')} for {cleanText(firstName)}</Text>
-            <Text style={styles.subtitle}>{cleanText(report['header-section']?.subtitle || 'Prepared by DreamScape AI')}</Text>
+            <Text style={styles.reportTitle}>{parseTrademarks(report['header-section']?.title || 'Client Assessment Report')} for {parseTrademarks(firstName)}</Text>
+            <Text style={styles.subtitle}>{parseTrademarks(report['header-section']?.subtitle || 'Prepared by DreamScape AI')}</Text>
             {report['header-section']?.openingStatement && (
-              <Text style={styles.openingStatement}>{cleanText(report['header-section'].openingStatement)}</Text>
+              <Text style={styles.openingStatement}>{parseTrademarks(report['header-section'].openingStatement)}</Text>
             )}
           </View>
+
+          <SectionSeparator />
 
           {/* Question Sections */}
           {report['question-section'] && report['question-section'].map((question: QuestionData, index: number) => (
@@ -542,7 +656,10 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
           {/* Closing Section */}
           {report['closing-section'] && report['closing-section'].map((closing: { content: string }, index: number) => (
             <View key={`closing_${index}`} style={styles.closingSection}>
-              <Text>📆 {cleanText(closing.content)}</Text>
+              {/* <View style={{ flexDirection: 'row',  alignItems: 'center' }}> */}
+                <CalendarIcon />
+                <Text style={{ marginLeft: 4 }}>{parseTrademarks(closing.content)}</Text>
+              {/* </View> */}
             </View>
           ))}
         </View>
@@ -563,7 +680,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
         {/* Fixed banner at the top of every page */}
         <View style={styles.fullWidthBanner} fixed>
           <Image
-            src="/banner.png"
+            src="/banner1.png"
             style={styles.bannerImage}
             cache={false}
           />
@@ -575,7 +692,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
         {/* Content container */}
         <View style={styles.contentContainer}>
           <View style={styles.titleContainer}>
-            <Text style={styles.reportTitle}>{cleanText(report.header?.title || 'Practitioner Case Report')}: {cleanText(firstName)}</Text>
+            <Text style={styles.reportTitle}>{parseTrademarks(report.header?.title || 'Practitioner Case Report')}: {parseTrademarks(firstName)}</Text>
           </View>
 
           {/* Client Summary Section */}
@@ -584,13 +701,13 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
               return (
                 <React.Fragment key={`summary_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
-                    <Text style={styles.sectionTitle}>{cleanText(section.title)}</Text>
-                    {section.content && <Text style={styles.normalText}>{cleanText(section.content)}</Text>}
+                    <Text style={styles.sectionTitle}>{parseTrademarks(section.title)}</Text>
+                    {section.content && <Text style={styles.normalText}>{parseTrademarks(section.content)}</Text>}
 
                     {section.primaryObjective && (
                       <View style={{ marginTop: 10 }}>
                         <Text style={styles.subsectionTitle}>Primary Objective:</Text>
-                        <Text style={styles.normalText}>{cleanText(section.primaryObjective)}</Text>
+                        <Text style={styles.normalText}>{parseTrademarks(section.primaryObjective)}</Text>
                       </View>
                     )}
                   </View>
@@ -620,7 +737,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
               return (
                 <React.Fragment key={`phases_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
-                    <Text style={styles.sectionTitle}>{cleanText(section.title)}</Text>
+                    <Text style={styles.sectionTitle}>{parseTrademarks(section.title)}</Text>
 
                     {section.phases && section.phases.map((phase: PhaseData, phaseIndex: number) => (
                       <React.Fragment key={`phase_${phaseIndex}`}>
@@ -651,7 +768,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
                 {report.projectedTransformationOutcomes.map((outcome: string, idx: number) => (
                   <View key={`outcome_${idx}`} style={styles.bulletRow}>
                     <Text style={styles.bulletMarker}>•</Text>
-                    <Text style={styles.bulletPoint}>{cleanText(outcome)}</Text>
+                    <Text style={styles.bulletPoint}>{parseTrademarks(outcome)}</Text>
                   </View>
                 ))}
               </View>
@@ -662,7 +779,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
           {/* Closing Statement */}
           {report.closingStatement && (
             <View style={styles.closingSection}>
-              <Text>{cleanText(report.closingStatement)}</Text>
+              <Text>{parseTrademarks(report.closingStatement)}</Text>
             </View>
           )}
         </View>

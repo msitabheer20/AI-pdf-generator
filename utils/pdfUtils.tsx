@@ -1,6 +1,12 @@
-import { Document, Page, Text, View, StyleSheet, Image, pdf } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, pdf, Font } from '@react-pdf/renderer';
 import { createTw } from 'react-pdf-tailwind';
 import React from 'react';
+
+// Register Times New Roman font
+Font.register({
+  family: 'Times New Roman',
+  src: '/times.ttf',
+});
 
 const tw = createTw({});
 
@@ -8,7 +14,7 @@ const tw = createTw({});
 const styles = StyleSheet.create({
   page: {
     padding: 40,
-    fontFamily: 'Helvetica',
+    fontFamily: 'Times New Roman',
     position: 'relative',
   },
   fullWidthBanner: {

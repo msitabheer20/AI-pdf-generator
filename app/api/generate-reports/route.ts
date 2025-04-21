@@ -88,18 +88,22 @@ export async function POST(request: Request) {
         const { firstName, email, ques1, ques2, ques3, ques4, ques5 } = result.data;
 
         const prompt = `
-            Generate two detailed reports based on the user's assessment responses. 
+        You are DreamScape AI, an advanced personal transformation assistant operating exclusively within ChatGPT specifically trained with the Neuro Change Method™, so it's essential that All responses are science-backed and evidence-based, Your role is to generate two deeply personalized reports based on the user's assessment responses.
+
+        **Guidelines:**
+        - **Personalization:** Craft highly individualized content that precisely addresses the client's unique experiences, goals, and challenges. Avoid generic platitudes.
+        - **Precision & Diversity:** Ensure each section provides distinct insights without overlapping content. Vary your linguistic patterns and analytical approaches across sections.
+        - **Voice & Tone:** Maintain a balance of empathetic understanding and authoritative expertise. Convey warmth while establishing credibility.
+        - **Analysis Depth:** Identify subtle patterns across the client's responses to reveal deeper insights about their psychological state and transformation potential.
             
-            The response should be in JSON format with structured data that can be easily parsed into PDF sections.
-            
-            User Input:
-            - First Name: ${firstName}
-            - Email: ${email}
-            - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
-            - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
-            - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
-            - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
-            - Q5: If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why? ${ques5}
+        **User Input:**
+        - First Name: ${firstName}
+        - Email: ${email}
+        - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
+        - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
+        - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
+        - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
+        - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
 
             Return a JSON object with the following structure:
             {
@@ -125,14 +129,14 @@ export async function POST(request: Request) {
                         "content": "Explanation of benefits based on client's responses"
                         "points": {
                             item1: "content of point 1",
-                            // five to six more such key value points which will read like the pillars or modules of a personal development framework—each one representing a methodology or intervention used within the Neuro Change Method™ program, assessment, or coaching experience, use appropriate topic for item1, item2 and so on.
+                            // five to six more such key value points which will read like the pillars or modules of a personal development framework—each one representing a methodology or intervention used within the Neuro Change Method™ program, assessment, or coaching experience, use appropriate headings in place of item1, item2 and so on.
                         },
                         "closingStatement": "a motivational closing statement for the journey of the client"
                     },
                     {
                         "type": "highlight",
                         "title": "Why Now, Why You, and Why a Neuro Change Practitioner?",
-                        "content": "comprehensive and compelling explanation of why the client should work with a practitioner",
+                        "content": "comprehensive and compelling explanation of why the client should work with a practitioner, generate two to three paragraphs",
                         "points": [
                             "content of point 1",
                             // three to four more such points which will define the quality of the practitioner and the Neuro Change Method™ based on the client's responses.
@@ -162,15 +166,15 @@ export async function POST(request: Request) {
                     "type": "section",
                     "title": "Key Barriers:",
                     "items": [
-                      "Specific psychological obstacle 1",
-                      "Specific psychological obstacle 2",
-                      "Specific psychological obstacle 3"
+                      "Specific psychological obstacle 1 based on the client's responses",
+                      "Specific psychological obstacle 2 based on the client's responses",
+                      "Specific psychological obstacle 3 based on the client's responses"
                     ]
                   },
                   {
                     "type": "section",
                     "title": "Transformation Theme:",
-                    "content": "One-line statement capturing journey essence"
+                    "content": "One-line statement capturing journey essence based on the client's responses"
                   },
                   {
                     "type": "section",
@@ -179,69 +183,68 @@ export async function POST(request: Request) {
                       {
                         "type": "phase",
                         "title": "Phase 1: Consciousness",
-                        items: [
-                            "focus": "focus of this phase",
-                            "tools": "tools used in this phase",
-                            "goal": "goal of this phase"
+                        "items": [  
+                            "focus": "focus of this phase based on the client's responses",
+                            "tools": "tools used in this phase based on the client's responses",
+                            "goal": "goal of this phase based on the client's responses"
                         ]
                       },
                       {
                         "type": "phase",
                         "title": "Phase 2: Mindset (NeuroPlasticity)",
-                        items: [
-                            "focus": "focus of this phase",
-                            "tools": "tools used in this phase",
-                            "goal": "goal of this phase"
+                        "items": [
+                            "focus": "focus of this phase based on the client's responses",
+                            "tools": "tools used in this phase based on the client's responses",
+                            "goal": "goal of this phase based on the client's responses"
                         ]
                       },
                       {
                         "type": "phase",
                         "title": "Phase 3: The Subconscious",
-                        items: [
-                            "focus": "focus of this phase",
-                            "tools": "tools used in this phase",
-                            "goal": "goal of this phase"
+                        "items": [
+                            "focus": "focus of this phase based on the client's responses",
+                            "tools": "tools used in this phase based on the client's responses",
+                            "goal": "goal of this phase based on the client's responses"
                         ]
                       },
                       {
                         "type": "phase",
                         "title": "Phase 4: The Brain (Permanent Integration)",
-                        items: [
-                            "focus": "focus of this phase",
-                            "tools": "tools used in this phase",
-                            "goal": "goal of this phase"
+                        "items": [
+                            "focus": "focus of this phase based on the client's responses",
+                            "tools": "tools used in this phase based on the client's responses",
+                            "goal": "goal of this phase based on the client's responses"
                         ]
                       }
                     ]
                   },
                 "milestones": [
                   {
-                    "milestone": "First milestone description",
-                    "targetWeek": "Week 1-2",
-                    "toolsAndFocus": "Tools and techniques for this milestone"
+                    "milestone": "First milestone description based on the client's responses",
+                    "targetWeek": "Week 1-2 based on the client's responses",
+                    "toolsAndFocus": "Tools and techniques for this milestone based on the client's responses"
                   }
                   // 5 more milestone entries following same structure
                 ],
-                projectedTransformationOutcomes: [
-                  "Specific measurable outcome 1",
-                  "Specific measurable outcome 2",
-                  "Specific measurable outcome 3"
+                "projectedTransformationOutcomes": [
+                  "Specific measurable outcome 1 based on the client's responses",
+                  "Specific measurable outcome 2 based on the client's responses",
+                  "Specific measurable outcome 3 based on the client's responses"
                 ],
-                closingStatement: "a motivational closing statement for the practitioner report for the client"
+                "closingStatement": "a motivational closing statement for the practitioner report for the client"
               }
             }
 
             Make sure to deeply personalize both reports to the client's specific situation based on their assessment responses. The content should feel tailored to their unique needs, goals, and challenges.
         `;
 
-        // i have created a prompt for the ai to generate the text. i want that this prompt text to be more efficient and generate more comprehensive, clear, and good results. make the necessary changes in the prompt. do not add any additional sections, just change the things in the existing prompt so that ai can generate a response which is not repeated or have similarity in responses. tweak any parameters if required.
-
         const completion = await openai.chat.completions.create({
             model: 'gpt-4o',
             messages: [{ role: 'user', content: prompt }],
-            temperature: 0.5,
+            temperature: 0.7,
             max_tokens: 4000,
-            response_format: { type: "json_object" }
+            response_format: { type: "json_object" },
+            // top_p: 0.95
         });
 
         const content = completion.choices[0].message.content || '';
