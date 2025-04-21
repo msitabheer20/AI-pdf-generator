@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
     objectPosition: 'top left',
   },
   fixedHeader: {
-    height: 260,
+    height: 240,
   },
   contentContainer: {
     width: '100%',
@@ -46,68 +46,75 @@ const styles = StyleSheet.create({
   instituteName: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#333333',
+    color: '#000000',
   },
   instituteTagline: {
     fontSize: 11,
-    color: '#666666',
+    color: '#000000',
     marginTop: 2,
   },
   reportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 6,
-    color: '#333333',
+    color: '#000000',
   },
   subtitle: {
     fontSize: 12,
-    color: '#666666',
+    color: '#000000',
     marginBottom: 10,
+    fontStyle: 'italic',
   },
   openingStatement: {
     fontSize: 12,
     fontStyle: 'italic',
-    color: '#333333',
+    color: '#000000',
     marginBottom: 20,
     lineHeight: 1.6,
+    fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginTop: 15,
     marginBottom: 6,
-    color: '#333333',
+    color: '#000000',
   },
   questionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 12,
     marginBottom: 5,
-    color: '#333333',
+    color: '#000000',
   },
   subsectionTitle: {
     fontSize: 13,
     fontWeight: 'bold',
     marginTop: 8,
     marginBottom: 4,
-    color: '#333333',
+    color: '#000000',
   },
   normalText: {
     fontSize: 12,
     lineHeight: 1.6,
     marginBottom: 10,
-    color: '#333333',
+    color: '#000000',
   },
   boldText: {
+    fontSize: 12,
     fontWeight: 'bold',
+    color: '#000000',
   },
   italicText: {
+    fontSize: 12,
     fontStyle: 'italic',
+    color: '#000000',
   },
   bulletPoint: {
     marginLeft: 15,
     fontSize: 12,
     lineHeight: 1.6,
+    color: '#000000',
   },
   bulletRow: {
     flexDirection: 'row',
@@ -127,11 +134,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 5,
-    color: '#0066CC',
+    color: '#000000',
   },
   highlightText: {
     fontSize: 12,
-    color: '#333333',
+    color: '#000000',
     lineHeight: 1.6,
   },
   transformationSection: {
@@ -143,7 +150,7 @@ const styles = StyleSheet.create({
   phaseTitle: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#6633CC',
+    color: '#000000',
     marginBottom: 5,
   },
   phaseItem: {
@@ -151,11 +158,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 1.6,
     marginBottom: 3,
+    color: '#000000',
   },
   phaseContent: {
     marginLeft: 15,
     fontSize: 12,
-    color: '#333333',
+    color: '#000000',
     lineHeight: 1.6,
   },
   tableRow: {
@@ -175,13 +183,14 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 11,
     padding: 4,
+    color: '#000000',
   },
   tableCellHeader: {
     flex: 1,
     fontSize: 11,
     fontWeight: 'bold',
     padding: 4,
-    color: '#333333',
+    color: '#000000',
   },
   titleContainer: {
     marginBottom: 20,
@@ -189,7 +198,7 @@ const styles = StyleSheet.create({
     borderBottom: '1px solid #EEEEEE',
   },
   sectionSeparator: {
-    borderBottom: '1px solid #EEEEEE',
+    borderBottom: '1px solid #7d7c7c',
     marginVertical: 15,
     width: '100%',
   },
@@ -198,7 +207,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     lineHeight: 1.6,
     fontStyle: 'italic',
-    color: '#333333',
+    color: '#000000',
     padding: 10,
     backgroundColor: '#f9f9f9',
     borderRadius: 5,
@@ -206,33 +215,33 @@ const styles = StyleSheet.create({
 });
 
 // Custom Page component with banner
-const PageWithBanner = ({ children }: { children: React.ReactNode }) => (
-  <Page size="A4" style={styles.page} wrap>
-    {/* Fixed banner that will appear on all pages at the same position */}
-    <View style={styles.fullWidthBanner} fixed>
-      <Image
-        src="/banner.png"
-        style={styles.bannerImage}
-        cache={false}
-      />
-    </View>
-    
-    {/* Fixed empty header to ensure consistent spacing on all pages */}
-    <View style={styles.fixedHeader} fixed>
-      {/* This empty fixed view ensures banner space is reserved on all pages */}
-    </View>
-    
-    {/* Content that will flow across pages with consistent spacing */}
-    <View style={styles.contentContainer}>
-      {children}
-    </View>
-  </Page>
-);
+// const PageWithBanner = ({ children }: { children: React.ReactNode }) => (
+//   <Page size="A4" style={styles.page} wrap>
+//     {/* Fixed banner that will appear on all pages at the same position */}
+//     <View style={styles.fullWidthBanner} fixed>
+//       <Image
+//         src="/banner.png"
+//         style={styles.bannerImage}
+//         cache={false}
+//       />
+//     </View>
+
+//     {/* Fixed empty header to ensure consistent spacing on all pages */}
+//     <View style={styles.fixedHeader} fixed>
+//       {/* This empty fixed view ensures banner space is reserved on all pages */}
+//     </View>
+
+//     {/* Content that will flow across pages with consistent spacing */}
+//     <View style={styles.contentContainer}>
+//       {children}
+//     </View>
+//   </Page>
+// );
 
 // Clean text to fix character encoding issues
 const cleanText = (text: string): string => {
   if (!text) return '';
-  
+
   // Replace problematic characters and HTML entities
   return text
     .replace(/[""]/g, '"')
@@ -270,37 +279,37 @@ const SectionSeparator = () => (
 );
 
 // Types for structured data
-type ContentType = 
-  | 'section'
-  | 'question'
-  | 'subsection'
-  | 'bullet'
-  | 'highlight'
-  | 'phase'
-  | 'normal'
-  | 'clientResponse'
-  | 'aiInsight'
-  | 'closing';
+// type ContentType =
+//   | 'section'
+//   | 'question'
+//   | 'subsection'
+//   | 'bullet'
+//   | 'highlight'
+//   | 'phase'
+//   | 'normal'
+//   | 'clientResponse'
+//   | 'aiInsight'
+//   | 'closing';
 
-type ContentSection = {
-  type: ContentType;
-  title?: string;
-  content?: string;
-  items?: string[];
-  points?: Record<string, string>;
-};
+// type ContentSection = {
+//   type: ContentType;
+//   title?: string;
+//   content?: string;
+//   items?: string[];
+//   points?: Record<string, string>;
+// };
 
-type PhaseItem = {
-  focus?: string;
-  tools?: string;
-  goal?: string;
-};
+// type PhaseItem = {
+//   focus?: string;
+//   tools?: string;
+//   goal?: string;
+// };
 
-type PhaseSection = {
-  type: string;
-  title: string;
-  items: PhaseItem;
-};
+// type PhaseSection = {
+//   type: string;
+//   title: string;
+//   items: PhaseItem;
+// };
 
 type MilestoneItem = {
   milestone: string;
@@ -308,8 +317,70 @@ type MilestoneItem = {
   toolsAndFocus: string;
 };
 
+// Type definitions
+type QuestionData = {
+  title: string;
+  clientResponse: string;
+  aiInsight: string;
+};
+
+type HighlightData = {
+  title: string;
+  content: string;
+  points?: Record<string, string>;
+};
+
+type PhaseData = {
+  title: string;
+  items: {
+    focus?: string;
+    tools?: string;
+    goal?: string;
+  };
+};
+
+type SectionData = {
+  type: string;
+  title: string;
+  content?: string;
+  items?: string[];
+  primaryObjective?: string;
+  phases?: PhaseData[];
+};
+
+type ClientReport = {
+  'header-section'?: {
+    title?: string;
+    subtitle?: string;
+    openingStatement?: string;
+  };
+  'question-section'?: QuestionData[];
+  'highlight-section'?: HighlightData[];
+  'closing-section'?: Array<{ content: string }>;
+};
+
+type PractitionerReport = {
+  header?: {
+    title?: string;
+  };
+  sections?: Array<{
+    type: string;
+    title: string;
+    content?: string;
+    primaryObjective?: string;
+    phases?: PhaseData[];
+  }>;
+  milestones?: Array<{
+    milestone: string;
+    targetWeek: string;
+    toolsAndFocus: string;
+  }>;
+  projectedTransformationOutcomes?: string[];
+  closingStatement?: string;
+};
+
 // Render client response and AI insight
-const renderQuestionSection = (questionData: any, key: string | number) => (
+const renderQuestionSection = (questionData: QuestionData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
     <Text style={styles.questionTitle}>{cleanText(questionData.title)}</Text>
     <View style={{ marginBottom: 8, marginLeft: 10 }} wrap>
@@ -319,49 +390,63 @@ const renderQuestionSection = (questionData: any, key: string | number) => (
       </Text>
     </View>
     <View style={{ marginBottom: 8 }} wrap>
-      <Text style={styles.subsectionTitle}>DreamScape AI Insight:</Text>
+      <Text style={styles.subsectionTitle}>DreamScape AI Reflection:</Text>
       <Text style={styles.normalText}>{cleanText(questionData.aiInsight)}</Text>
     </View>
   </View>
 );
 
 // Render highlight section with points
-const renderHighlightSection = (highlightData: any, key: string | number) => (
+const renderHighlightSection = (highlightData: HighlightData, key: string | number) => (
   <View key={key} style={styles.highlightBox} wrap>
     <Text style={styles.highlightTitle}>{cleanText(highlightData.title)}</Text>
     <Text style={styles.highlightText}>{cleanText(highlightData.content)}</Text>
-    
-    {highlightData.points && Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
-      <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
-        <Text style={{...styles.bulletMarker, fontWeight: 'bold'}}>•</Text>
-        <Text style={styles.bulletPoint}>{cleanText(pointValue as string)}</Text>
-      </View>
-    ))}
+
+    {highlightData.points && (
+      Array.isArray(highlightData.points) ? (
+        highlightData.points.map((point: string, idx: number) => (
+          <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
+            {/* <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>{idx === 0 ? '⚡' : '◆'}</Text> */}
+            <Text style={styles.bulletPoint}>{cleanText(point)}</Text>
+          </View>
+        ))
+      ) : (
+        Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
+          <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
+            <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>{idx === 0 ? '⚡' : '◆'}</Text>
+            <Text style={styles.bulletPoint}>
+              <Text style={styles.boldText}>{cleanText(pointKey)}: </Text>
+              {cleanText(pointValue as string)}
+            </Text>
+          </View>
+        ))
+      )
+    )}
   </View>
 );
 
 // Render phase section with items
-const renderPhaseSection = (phaseData: any, key: string | number) => (
+const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
     <Text style={styles.phaseTitle}>{cleanText(phaseData.title)}</Text>
-    
+
     {phaseData.items && (
       <View style={{ marginLeft: 15 }}>
         {phaseData.items.focus && (
           <Text style={styles.phaseItem}>
-            <Text style={{...styles.boldText, color: '#333333'}}>Focus: </Text>
+            <Text style={{ ...styles.boldText, color: '#333333' }}>Focus: </Text>
             {cleanText(phaseData.items.focus)}
           </Text>
         )}
         {phaseData.items.tools && (
           <Text style={styles.phaseItem}>
-            <Text style={{...styles.boldText, color: '#333333'}}>Tools: </Text>
+            <Text style={{ ...styles.boldText, color: '#333333' }}>Tools: </Text>
             {cleanText(phaseData.items.tools)}
           </Text>
         )}
         {phaseData.items.goal && (
           <Text style={styles.phaseItem}>
-            <Text style={{...styles.boldText, color: '#333333'}}>Goal: </Text>
+            <Text style={{ ...styles.boldText, color: '#333333' }}>Goal: </Text>
             {cleanText(phaseData.items.goal)}
           </Text>
         )}
@@ -371,14 +456,14 @@ const renderPhaseSection = (phaseData: any, key: string | number) => (
 );
 
 // Render section with items (bullet points)
-const renderSectionWithItems = (sectionData: any, key: string | number) => (
+const renderSectionWithItems = (sectionData: SectionData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
     <Text style={styles.sectionTitle}>{cleanText(sectionData.title)}</Text>
     {sectionData.content && <Text style={styles.normalText}>{cleanText(sectionData.content)}</Text>}
-    
+
     {sectionData.items && sectionData.items.map((item: string, idx: number) => (
       <View key={`${key}_item_${idx}`} style={styles.bulletRow}>
-        <Text style={{...styles.bulletMarker, fontWeight: 'bold'}}>•</Text>
+        <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
         <Text style={styles.bulletPoint}>{cleanText(item)}</Text>
       </View>
     ))}
@@ -405,9 +490,9 @@ const renderMilestoneTable = (milestones: MilestoneItem[]) => (
 );
 
 // Generate client PDF with properly structured data
-export const generateClientPDF = async (firstName: string, clientReport: any) => {
+export const generateClientPDF = async (firstName: string, clientReport: ClientReport) => {
   const report = clientReport;
-  
+
   const ClientPDF = (
     <Document>
       <Page size="A4" style={styles.page} wrap>
@@ -419,10 +504,10 @@ export const generateClientPDF = async (firstName: string, clientReport: any) =>
             cache={false}
           />
         </View>
-        
+
         {/* Fixed header space to maintain consistent spacing on all pages */}
         <View style={styles.fixedHeader} fixed />
-        
+
         {/* Content container */}
         <View style={styles.contentContainer}>
           {/* Header Section */}
@@ -435,29 +520,29 @@ export const generateClientPDF = async (firstName: string, clientReport: any) =>
           </View>
 
           {/* Question Sections */}
-          {report['question-section'] && report['question-section'].map((question: any, index: number) => (
+          {report['question-section'] && report['question-section'].map((question: QuestionData, index: number) => (
             <React.Fragment key={`question_${index}`}>
               {renderQuestionSection(question, `client_question_${index}`)}
-              {index < report['question-section'].length - 1 && <SectionSeparator />}
+              {index < (report['question-section']?.length ?? 0) - 1 && <SectionSeparator />}
             </React.Fragment>
           ))}
-          
+
           <SectionSeparator />
-          
+
           {/* Highlight Sections */}
-          {report['highlight-section'] && report['highlight-section'].map((highlight: any, index: number) => (
+          {report['highlight-section'] && report['highlight-section'].map((highlight: HighlightData, index: number) => (
             <React.Fragment key={`highlight_${index}`}>
               {renderHighlightSection(highlight, `client_highlight_${index}`)}
-              {index < report['highlight-section'].length - 1 && <SectionSeparator />}
+              {index < (report['highlight-section']?.length ?? 0) - 1 && <SectionSeparator />}
             </React.Fragment>
           ))}
-          
+
           <SectionSeparator />
-          
+
           {/* Closing Section */}
-          {report['closing-section'] && report['closing-section'].map((closing: any, index: number) => (
+          {report['closing-section'] && report['closing-section'].map((closing: { content: string }, index: number) => (
             <View key={`closing_${index}`} style={styles.closingSection}>
-              <Text>{cleanText(closing.content)}</Text>
+              <Text>📆 {cleanText(closing.content)}</Text>
             </View>
           ))}
         </View>
@@ -469,9 +554,9 @@ export const generateClientPDF = async (firstName: string, clientReport: any) =>
 };
 
 // Generate practitioner PDF with properly structured data
-export const generatePractitionerPDF = async (firstName: string, practitionerReport: any) => {
+export const generatePractitionerPDF = async (firstName: string, practitionerReport: PractitionerReport) => {
   const report = practitionerReport;
-  
+
   const PractitionerPDF = (
     <Document>
       <Page size="A4" style={styles.page} wrap>
@@ -483,25 +568,25 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
             cache={false}
           />
         </View>
-        
+
         {/* Fixed header space to maintain consistent spacing on all pages */}
         <View style={styles.fixedHeader} fixed />
-        
+
         {/* Content container */}
         <View style={styles.contentContainer}>
           <View style={styles.titleContainer}>
             <Text style={styles.reportTitle}>{cleanText(report.header?.title || 'Practitioner Case Report')}: {cleanText(firstName)}</Text>
           </View>
-          
+
           {/* Client Summary Section */}
-          {report.sections && report.sections.map((section: any, index: number) => {
+          {report.sections && report.sections.map((section: SectionData) => {
             if (section.type === 'section' && section.title === 'Client Summary') {
               return (
                 <React.Fragment key={`summary_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
                     <Text style={styles.sectionTitle}>{cleanText(section.title)}</Text>
-                    <Text style={styles.normalText}>{cleanText(section.content)}</Text>
-                    
+                    {section.content && <Text style={styles.normalText}>{cleanText(section.content)}</Text>}
+
                     {section.primaryObjective && (
                       <View style={{ marginTop: 10 }}>
                         <Text style={styles.subsectionTitle}>Primary Objective:</Text>
@@ -515,29 +600,29 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
             }
             return null;
           })}
-          
+
           {/* Other Sections */}
-          {report.sections && report.sections.map((section: any, index: number) => {
+          {report.sections && report.sections.map((section: SectionData) => {
             if (section.type === 'section' && section.title !== 'Client Summary' && section.title !== 'Neuro Change Method™: Your 4-Phase Transformation Journey') {
               return (
-                <React.Fragment key={`section_${index}`}>
-                  {renderSectionWithItems(section, `prac_section_${index}`)}
+                <React.Fragment key={`section_${section.title}`}>
+                  {renderSectionWithItems(section, `prac_section_${section.title}`)}
                   <SectionSeparator />
                 </React.Fragment>
               );
             }
             return null;
           })}
-          
+
           {/* Phases Section */}
-          {report.sections && report.sections.map((section: any, index: number) => {
+          {report.sections && report.sections.map((section: SectionData) => {
             if (section.title === 'Neuro Change Method™: Your 4-Phase Transformation Journey') {
               return (
                 <React.Fragment key={`phases_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
                     <Text style={styles.sectionTitle}>{cleanText(section.title)}</Text>
-                    
-                    {section.phases && section.phases.map((phase: PhaseSection, phaseIndex: number) => (
+
+                    {section.phases && section.phases.map((phase: PhaseData, phaseIndex: number) => (
                       <React.Fragment key={`phase_${phaseIndex}`}>
                         {renderPhaseSection(phase, `prac_phase_${phaseIndex}`)}
                       </React.Fragment>
@@ -549,7 +634,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
             }
             return null;
           })}
-          
+
           {/* Milestones Table */}
           {report.milestones && report.milestones.length > 0 && (
             <React.Fragment>
@@ -557,7 +642,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
               <SectionSeparator />
             </React.Fragment>
           )}
-          
+
           {/* Projected Transformation Outcomes */}
           {report.projectedTransformationOutcomes && (
             <React.Fragment>
@@ -573,7 +658,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
               <SectionSeparator />
             </React.Fragment>
           )}
-          
+
           {/* Closing Statement */}
           {report.closingStatement && (
             <View style={styles.closingSection}>

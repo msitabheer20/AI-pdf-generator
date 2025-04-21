@@ -123,18 +123,19 @@ export async function POST(request: Request) {
                         "type": "highlight",
                         "title": "What the Neuro Change Method™ Can Do for You",
                         "content": "Explanation of benefits based on client's responses"
-                        "points": [
+                        "points": {
                             item1: "content of point 1",
-                            // five to six more such key value points. These points read like the pillars or modules of a personal development framework—each one representing a methodology or intervention used within the Neuro Change Method™ program, assessment, or coaching experience.
-                        ]
+                            // five to six more such key value points which will read like the pillars or modules of a personal development framework—each one representing a methodology or intervention used within the Neuro Change Method™ program, assessment, or coaching experience, use appropriate topic for item1, item2 and so on.
+                        },
+                        "closingStatement": "a motivational closing statement for the journey of the client"
                     },
                     {
                         "type": "highlight",
                         "title": "Why Now, Why You, and Why a Neuro Change Practitioner?",
                         "content": "comprehensive and compelling explanation of why the client should work with a practitioner",
                         "points": [
-                            item1: "content of point 1",
-                            // three to four more such key value points. These points will define the quality of the practitioner and the Neuro Change Method™ based on the client's responses.
+                            "content of point 1",
+                            // three to four more such points which will define the quality of the practitioner and the Neuro Change Method™ based on the client's responses.
                         ]
                     }
                 ],

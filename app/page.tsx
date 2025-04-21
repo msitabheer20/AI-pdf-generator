@@ -5,6 +5,7 @@ import DOMPurify from 'isomorphic-dompurify';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { generateClientPDF, generatePractitionerPDF } from '@/utils/structuredPdfUtils';
+import { questions } from '@/utils/questions';
 
 const formSchema = z.object({
   firstName: z
@@ -12,13 +13,13 @@ const formSchema = z.object({
     .min(1, 'First name is required')
     .max(50, 'First name is too long')
     .regex(/^[a-zA-Z\s\-']+$/, 'First name should only contain letters, spaces, hyphens, or apostrophes'),
-  
+
   email: z
     .string()
     .email('Please enter a valid email')
     .max(100, 'Email is too long')
     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
-  
+
   ques1: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -26,7 +27,7 @@ const formSchema = z.object({
     .refine(text => text.split(' ').length >= 3, {
       message: 'Please provide a meaningful response with at least a few words'
     }),
-  
+
   ques2: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -34,7 +35,7 @@ const formSchema = z.object({
     .refine(text => text.split(' ').length >= 3, {
       message: 'Please provide a meaningful response with at least a few words'
     }),
-  
+
   ques3: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -42,7 +43,7 @@ const formSchema = z.object({
     .refine(text => text.split(' ').length >= 3, {
       message: 'Please provide a meaningful response with at least a few words'
     }),
-  
+
   ques4: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -50,7 +51,7 @@ const formSchema = z.object({
     .refine(text => text.split(' ').length >= 3, {
       message: 'Please provide a meaningful response with at least a few words'
     }),
-  
+
   ques5: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -68,7 +69,7 @@ const formSchemaWithDuplicateCheck = formSchema.superRefine((data, ctx) => {
   const responses = [data.ques1, data.ques2, data.ques3, data.ques4, data.ques5];
   const trimmedResponses = responses.map(response => response.trim().toLowerCase());
   const uniqueResponses = new Set(trimmedResponses);
-  
+
   if (uniqueResponses.size !== responses.length) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
@@ -78,13 +79,20 @@ const formSchemaWithDuplicateCheck = formSchema.superRefine((data, ctx) => {
   }
 });
 
-const questions=["1. Where are you right now in your life, emotionally and mentally?*","2. What is something you deeply want—but haven't yet achieved?*","3. What recurring thoughts, fears, or beliefs do you find yourself struggling with?*","4. When was the last time you felt truly aligned—with yourself, your goals, or your life?*","5. If you could reprogram one part of your mind—one habit, belief, or emotional pattern—what would it be, and why?*"]
-
 export default function Home() {
-  const { 
-    control, 
-    handleSubmit: hookFormSubmit, 
-    formState: { errors, isValid, isDirty, touchedFields },
+
+  const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
+  const [clientPdfUrl, setClientPdfUrl] = useState('');
+  const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
+  const [error, setError] = useState('');
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [retryMode, setRetryMode] = useState(false);
+
+  const {
+    control,
+    handleSubmit: hookFormSubmit,
+    formState: { errors, isValid, touchedFields },
     getValues,
     reset
   } = useForm<FormDataWithDuplicateCheck>({
@@ -101,14 +109,6 @@ export default function Home() {
     }
   });
 
-  const [loading, setLoading] = useState(false);
-  const [generating, setGenerating] = useState(false);
-  const [clientPdfUrl, setClientPdfUrl] = useState('');
-  const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
-  const [error, setError] = useState('');
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [retryMode, setRetryMode] = useState(false);
-
   useEffect(() => {
     if (showConfirmation) {
       setClientPdfUrl('');
@@ -116,7 +116,7 @@ export default function Home() {
     }
   }, [showConfirmation]);
 
-  const onSubmit = (data: FormDataWithDuplicateCheck) => {
+  const onSubmit = () => {
     setShowConfirmation(true);
   };
 
@@ -125,41 +125,41 @@ export default function Home() {
     setLoading(true);
     setError('');
     setRetryMode(false);
-  
+
     try {
       const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
         if (key !== 'duplicateResponses' && typeof value === 'string') {
           acc[key] = DOMPurify.sanitize(value.trim());
         }
         return acc;
-      }, {} as Record<string, any>);
-      
+      }, {} as Record<string, string>);
+
       const response = await fetch('/api/generate-reports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(sanitizedData),
       });
-  
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to generate reports');
       }
-      
+
       const { clientContent, practitionerContent, firstName } = await response.json();
-      
+
       setGenerating(true);
-      
+
       const clientBlob = await generateClientPDF(firstName, clientContent);
       const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
-      
+
       const clientUrl = window.URL.createObjectURL(clientBlob);
       setClientPdfUrl(clientUrl);
-      
+
       const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
       setPractitionerPdfUrl(practitionerUrl);
-  
+
       reset();
-      
+
     } catch (err) {
       console.error('Error:', err);
       setError('An error occurred. Please try again.');
@@ -207,8 +207,8 @@ export default function Home() {
             <svg viewBox="0 0 200 200" className="w-full h-full">
               <defs>
                 <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{stopColor:"#6633CC", stopOpacity:1}} />
-                  <stop offset="100%" style={{stopColor:"#0066CC", stopOpacity:1}} />
+                  <stop offset="0%" style={{ stopColor: "#6633CC", stopOpacity: 1 }} />
+                  <stop offset="100%" style={{ stopColor: "#0066CC", stopOpacity: 1 }} />
                 </linearGradient>
               </defs>
               <circle cx="100" cy="100" r="80" fill="url(#grad1)" />
@@ -222,11 +222,11 @@ export default function Home() {
             <p className="text-sm text-gray-500">The Neuro Change Institute</p>
           </div>
         </div>
-        
+
         <form onSubmit={(e) => { e.preventDefault(); handleButtonClick(); }} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor='firstName' className="block text-sm font-medium text-gray-600">First Name</label>
+              <label htmlFor='firstName' className="block text-sm font-bold text-black">First Name</label>
               <Controller
                 name="firstName"
                 control={control}
@@ -246,7 +246,7 @@ export default function Home() {
               )}
             </div>
             <div>
-              <label htmlFor='email' className="block text-sm font-medium text-gray-600">Email</label>
+              <label htmlFor='email' className="block text-sm font-bold text-black">Email</label>
               <Controller
                 name="email"
                 control={control}
@@ -266,16 +266,16 @@ export default function Home() {
               )}
             </div>
           </div>
-          
+
           {/* Questions Inputs for the User */}
           {questions.map((question, index) => {
             const fieldName = `ques${index + 1}` as keyof FormDataWithDuplicateCheck;
             const hasError = !!errors[fieldName];
             const isTouched = !!touchedFields[fieldName];
-            
+
             return (
               <div key={index}>
-                <label htmlFor={fieldName} className="block text-sm font-medium text-gray-600">
+                <label htmlFor={fieldName} className="block text-sm font-bold text-black">
                   {question}
                 </label>
                 <Controller
@@ -296,20 +296,20 @@ export default function Home() {
                 )}
               </div>
             );
-          })}   
-          
+          })}
+
           {hasDuplicateError && (
             <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">
               Please provide unique answers for each question. Some of your responses appear to be identical.
             </div>
           )}
-          
+
           {error && (
             <div className="mt-2 p-3 bg-red-50 text-red-500 rounded-md">
               <p>{error}</p>
             </div>
           )}
-          
+
           <button
             type="submit"
             disabled={loading || generating || (!retryMode && !isValid)}
@@ -328,7 +328,7 @@ export default function Home() {
             )}
           </button>
         </form>
-        
+
         {(clientPdfUrl || practitionerPdfUrl) && (
           <div className="mt-6 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
             <h2 className="text-lg font-medium text-gray-700">Your Assessment Reports</h2>
@@ -365,7 +365,7 @@ export default function Home() {
             </div>
           </div>
         )}
-        
+
         {/* Confirmation Modal with dimmer background */}
         {showConfirmation && (
           <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50">
