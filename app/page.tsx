@@ -149,7 +149,13 @@ export default function Home() {
 
       setGenerating(true);
 
-      const clientBlob = await generateClientPDF(firstName, clientContent);
+      // Pass the frontend questions and responses directly to the PDF generator
+      const frontendResponses = {
+        questions: [...questions] as string[],
+        responses: sanitizedData
+      };
+
+      const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
       const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
 
       const clientUrl = window.URL.createObjectURL(clientBlob);

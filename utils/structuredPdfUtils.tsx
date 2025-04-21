@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet, Image, pdf, Font, Svg, Path } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, pdf, Font } from '@react-pdf/renderer';
 import React from 'react';
 
 // Emoji source no longer needed as we're using SVG icons instead
@@ -8,33 +8,27 @@ import React from 'react';
 //   withVariationSelectors: true,
 // });
 
-
-// SVG Icon Components
+// Image Components that replace SVG icons
 const BulbIcon = () => (
-  <Svg width={16} height={16} viewBox="0 0 24 24">
-    <Path
-      fill="#F1C40F"
-      d="M12 2C8.14 2 5 5.14 5 9c0 2.38 1.19 4.47 3 5.74V17c0 .55.45 1 1 1h6c.55 0 1-.45 1-1v-2.26c1.81-1.27 3-3.36 3-5.74 0-3.86-3.14-7-7-7zm-1 14h2v1h-2v-1zm0-2h2v1h-2v-1zm1-11c2.76 0 5 2.24 5 5 0 2.05-1.23 3.81-3 4.58V11h-4v1.58c-1.77-.77-3-2.53-3-4.58 0-2.76 2.24-5 5-5z"
-    />
-  </Svg>
+  <Image src="/assets/bulb.png" style={{ width: 16, height: 16 }} />
 );
 
 const DiamondIcon = () => (
-  <Svg width={14} height={14} viewBox="0 0 24 24">
-    <Path
-      fill="#3498DB"
-      d="M12 2L2 12l10 10 10-10L12 2zm0 15.5L5.5 12 12 5.5l6.5 6.5-6.5 6.5z"
-    />
-  </Svg>
+  <Image src="/assets/diamond.png" style={{ width: 16, height: 16 }} />
 );
 
 const CalendarIcon = () => (
-  <Svg width={14} height={14} viewBox="0 0 24 24">
-    <Path
-      fill="#27AE60"
-      d="M19 4h-1V3c0-.55-.45-1-1-1s-1 .45-1 1v1H8V3c0-.55-.45-1-1-1s-1 .45-1 1v1H5c-1.11 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"
-    />
-  </Svg>
+  <Image src="/assets/calendar.png" style={{ width: 14, height: 14 }} />
+);
+
+// Brain icon for phase sections
+const BrainIcon = () => (
+  <Image src="/assets/brain.png" style={{ width: 18, height: 18 }} />
+);
+
+// Compass icon for practitioner report header
+const CompassIcon = () => (
+  <Image src="/assets/compass.png" style={{ width: 18, height: 18 }} />
 );
 
 // Improved styles with better structure
@@ -92,34 +86,34 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 6,
+    // marginBottom: 5,
     color: '#000000',
   },
   subtitle: {
     fontSize: 12,
     color: '#000000',
-    marginBottom: 10,
+    marginBottom: 15,
     fontStyle: 'italic',
   },
   openingStatement: {
     fontSize: 12,
     color: '#000000',
-    marginBottom: 20,
+    marginBottom: 15,
     lineHeight: 1.6,
     fontWeight: 'bold',
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
-    marginTop: 15,
-    marginBottom: 6,
+    marginTop: 10,
+    marginBottom: 10,
     color: '#000000',
   },
   questionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
     marginTop: 12,
-    marginBottom: 5,
+    marginBottom: 8,
     color: '#000000',
   },
   subsectionTitle: {
@@ -156,7 +150,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   bulletMarker: {
-    width: 15,
+    width: 18,
     fontSize: 16,
   },
   highlightBox: {
@@ -241,36 +235,12 @@ const styles = StyleSheet.create({
     marginTop: 15,
     fontSize: 12,
     lineHeight: 1.6,
-    fontStyle: 'italic',
+    // fontStyle: 'italic',
     color: '#000000',
     padding: 10,
     borderRadius: 5,
   }
 });
-
-// Custom Page component with banner
-// const PageWithBanner = ({ children }: { children: React.ReactNode }) => (
-//   <Page size="A4" style={styles.page} wrap>
-//     {/* Fixed banner that will appear on all pages at the same position */}
-//     <View style={styles.fullWidthBanner} fixed>
-//       <Image
-//         src="/banner.png"
-//         style={styles.bannerImage}
-//         cache={false}
-//       />
-//     </View>
-
-//     {/* Fixed empty header to ensure consistent spacing on all pages */}
-//     <View style={styles.fixedHeader} fixed>
-//       {/* This empty fixed view ensures banner space is reserved on all pages */}
-//     </View>
-
-//     {/* Content that will flow across pages with consistent spacing */}
-//     <View style={styles.contentContainer}>
-//       {children}
-//     </View>
-//   </Page>
-// );
 
 // Clean text to fix character encoding issues
 const cleanText = (text: string): string => {
@@ -384,7 +354,7 @@ type PhaseData = {
 };
 
 type SectionData = {
-  type: string;
+  type: string;  // 'section' | 'highlight' | 'phase' | string;
   title: string;
   content?: string;
   items?: string[];
@@ -393,14 +363,11 @@ type SectionData = {
 };
 
 type ClientReport = {
-  'header-section'?: {
-    title?: string;
-    subtitle?: string;
-    openingStatement?: string;
-  };
   'question-section'?: QuestionData[];
-  'highlight-section'?: HighlightData[];
+  'highlight-section'?: HighlightData;
   'closing-section'?: Array<{ content: string }>;
+  // Added for direct frontend data support
+  clientResponses?: { [key: string]: string };
 };
 
 type PractitionerReport = {
@@ -421,6 +388,10 @@ type PractitionerReport = {
   }>;
   projectedTransformationOutcomes?: string[];
   closingStatement?: string;
+  practitionerNotes?: {
+    temperament?: string;
+    "best-practices"?: string[];
+  };
 };
 
 // Render client response and AI insight
@@ -428,10 +399,8 @@ const renderQuestionSection = (questionData: QuestionData, key: string | number)
   <View key={key} style={{ marginBottom: 10 }} wrap>
     <Text style={styles.questionTitle}>{parseTrademarks(questionData.title)}</Text>
     <View style={{ marginBottom: 8 }} wrap>
-      <Text>
-        <Text style={styles.boldText}>Client Response: </Text>
-        <Text style={styles.italicText}>{parseTrademarks(questionData.clientResponse)}</Text>
-      </Text>
+      <Text style={styles.boldText}>Client Response:</Text>
+      <Text style={{ ...styles.italicText, marginTop: 8 }}>{parseTrademarks(questionData.clientResponse)}</Text>
     </View>
     <View style={{ marginBottom: 8 }} wrap>
       <Text style={styles.subsectionTitle}>DreamScape AI Reflection:</Text>
@@ -450,35 +419,38 @@ const renderHighlightSection = (highlightData: HighlightData, key: string | numb
     <Text style={styles.highlightText}>{parseTrademarks(highlightData.content)}</Text>
 
     {highlightData.points && (
-      Array.isArray(highlightData.points) ? (
-        highlightData.points.map((point: string, idx: number) => (
-          <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
-            <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
-            <Text style={styles.bulletPoint}>{parseTrademarks(point)}</Text>
-          </View>
-        ))
-      ) : (
-        <>
-          {Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => (
+      <>
+        <Text style={{ ...styles.normalText, marginTop: 8, marginBottom: 8 }}>
+          Under the care of a Certified Neuro Change Practitioner, you'll be guided through a precision-based, science-backed transformation that uses:
+        </Text>
+        {Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => {
+          // Extract the actual content if the key has a format like "•item1: "
+          // Also handle any other potential prefixes or formatting
+          const cleanKey = pointKey
+            .replace(/^•?\s*item\d+:\s*/, '') // Remove •itemX: format
+            .replace(/^•?\s*/, '')            // Remove any bullet prefix
+            .replace(/:\s*$/, '');            // Remove trailing colon
+          
+          return (
             <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
               <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
               <Text style={styles.bulletPoint}>
-                <Text style={styles.boldText}>{parseTrademarks(pointKey)}: </Text>
+                <Text style={styles.boldText}>{parseTrademarks(cleanKey)}: </Text>
                 {parseTrademarks(pointValue as string)}
               </Text>
             </View>
-          ))}
-          
-          {/* Only display closing statement when points is an object */}
-          {highlightData.closingStatement && (
-            <View style={{ marginTop: 8 }}>
-              <Text style={{ ...styles.highlightText, fontStyle: 'italic' }}>
-                {parseTrademarks(highlightData.closingStatement)}
-              </Text>
-            </View>
-          )}
-        </>
-      )
+          );
+        })}
+        
+        {/* Closing statement */}
+        {highlightData.closingStatement && (
+          <View style={{ marginTop: 8 }}>
+            <Text style={{ ...styles.highlightText }}>
+              {parseTrademarks(highlightData.closingStatement)}
+            </Text>
+          </View>
+        )}
+      </>
     )}
   </View>
 );
@@ -486,7 +458,10 @@ const renderHighlightSection = (highlightData: HighlightData, key: string | numb
 // Render phase section with items
 const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
-    <Text style={styles.phaseTitle}>{parseTrademarks(phaseData.title)}</Text>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+      <BrainIcon />
+      <Text style={{ ...styles.phaseTitle, marginLeft: 4 }}>{parseTrademarks(phaseData.title)}</Text>
+    </View>
 
     {phaseData.items && (
       <View style={{ marginLeft: 15 }}>
@@ -602,8 +577,21 @@ const parseTrademarks = (text: string) => {
 };
 
 // Generate client PDF with properly structured data
-export const generateClientPDF = async (firstName: string, clientReport: ClientReport) => {
+export const generateClientPDF = async (firstName: string, clientReport: ClientReport, frontendResponses?: { questions: string[], responses: { [key: string]: string } }) => {
   const report = clientReport;
+
+  // Create question data from frontend responses if provided
+  let questionSection = report['question-section'];
+  if (frontendResponses && frontendResponses.questions && frontendResponses.responses) {
+    questionSection = frontendResponses.questions.map((question, index) => {
+      const qKey = `ques${index + 1}`;
+      return {
+        title: question,
+        clientResponse: frontendResponses.responses[qKey] || '',
+        aiInsight: report['question-section']?.[index]?.aiInsight || 'Analysis in progress...'
+      };
+    });
+  }
 
   const ClientPDF = (
     <Document>
@@ -624,44 +612,83 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
         <View style={styles.contentContainer}>
           {/* Header Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.reportTitle}>{parseTrademarks(report['header-section']?.title || 'Client Assessment Report')} for {parseTrademarks(firstName)}</Text>
-            <Text style={styles.subtitle}>{parseTrademarks(report['header-section']?.subtitle || 'Prepared by DreamScape AI')}</Text>
-            {report['header-section']?.openingStatement && (
-              <Text style={styles.openingStatement}>{parseTrademarks(report['header-section'].openingStatement)}</Text>
-            )}
+            <Text style={styles.reportTitle}>Client Assessment Report for {parseTrademarks(firstName)}</Text>
+            <Text style={styles.subtitle}>Prepared by DreamScape AI</Text>
+            <Text style={styles.openingStatement}>
+              {parseTrademarks(firstName)}, what you're about to read isn't just a reflection—it's a revelation. This assessment draws on evidence-based psychological frameworks and cutting-edge insight tools to uncover the hidden architecture of your mindset, motivations, and identity with stunning clarity.
+            </Text>
           </View>
 
           <SectionSeparator />
 
           {/* Question Sections */}
-          {report['question-section'] && report['question-section'].map((question: QuestionData, index: number) => (
+          {questionSection && questionSection.map((question: QuestionData, index: number) => (
             <React.Fragment key={`question_${index}`}>
               {renderQuestionSection(question, `client_question_${index}`)}
-              {index < (report['question-section']?.length ?? 0) - 1 && <SectionSeparator />}
+              {index < (questionSection?.length ?? 0) - 1 && <SectionSeparator />}
             </React.Fragment>
           ))}
 
           <SectionSeparator />
 
-          {/* Highlight Sections */}
-          {report['highlight-section'] && report['highlight-section'].map((highlight: HighlightData, index: number) => (
-            <React.Fragment key={`highlight_${index}`}>
-              {renderHighlightSection(highlight, `client_highlight_${index}`)}
-              {index < (report['highlight-section']?.length ?? 0) - 1 && <SectionSeparator />}
+          {/* Highlight Section */}
+          {report['highlight-section'] && (
+            <React.Fragment>
+              {renderHighlightSection(report['highlight-section'], 'client_highlight')}
             </React.Fragment>
-          ))}
+          )}
 
           <SectionSeparator />
 
-          {/* Closing Section */}
-          {report['closing-section'] && report['closing-section'].map((closing: { content: string }, index: number) => (
-            <View key={`closing_${index}`} style={styles.closingSection}>
-              {/* <View style={{ flexDirection: 'row',  alignItems: 'center' }}> */}
-                <CalendarIcon />
-                <Text style={{ marginLeft: 4 }}>{parseTrademarks(closing.content)}</Text>
-              {/* </View> */}
+          {/* Fixed Closing Section */}
+          <View style={styles.closingSection}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+              <DiamondIcon />
+              <Text style={{ ...styles.sectionTitle, marginLeft: 4, marginBottom: 10 }}>Why Now, Why You, and Why a Neuro Change Practitioner?</Text>
             </View>
-          ))}
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              {parseTrademarks(firstName)}, you're standing at a powerful crossroads—between where you've been and the future you're ready to claim. You don't need more inspiration—you need integration. You don't need more information—you need implementation.
+              {'\n\n'}And that's where our Accredited Neuro Change Practitioners come in.
+            </Text>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              The Neuro Change Method™ is not coaching. It's not motivational speaking. It is a scientifically grounded, evidence-based transformation framework—built on the latest research in neuroscience, cognitive psychology, and behavioral change theory.
+            </Text>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              Unlike traditional life coaches, our practitioners undergo rigorous training, accreditation, and ongoing mentorship. Their work is backed by our professional practice guidelines and validated through our Neuro Change Method™ White Paper, ensuring that every tool, every session, and every insight you receive is rooted in measurable, real-world efficacy.
+            </Text>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              What makes this different is the precision and personalization. Working with a Neuro Change Practitioner means working with someone who is:
+            </Text>
+            <View style={{ marginLeft: 15, marginBottom: 10 }}>
+              <View style={styles.bulletRow}>
+                <Text style={styles.bulletMarker}>•</Text>
+                <Text style={styles.bulletPoint}>Highly trained in neuroplasticity, mindset reframing, belief engineering, and subconscious integration.</Text>
+              </View>
+              <View style={styles.bulletRow}>
+                <Text style={styles.bulletMarker}>•</Text>
+                <Text style={styles.bulletPoint}>Supported by a powerful AI-enhanced framework that helps uncover the hidden dimensions of your transformation—your unconscious thought patterns, internal conflicts, and suppressed potential.</Text>
+              </View>
+              <View style={styles.bulletRow}>
+                <Text style={styles.bulletMarker}>•</Text>
+                <Text style={styles.bulletPoint}>Focused solely on you—your identity, your values, and your outcomes.</Text>
+              </View>
+            </View>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              This isn't generic advice. It's scientific strategy tailored to your deepest aspirations. And it's delivered with professional care, confidentiality, and compassion.
+            </Text>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              Booking a time to speak with one of our accredited practitioners isn't just a step forward—it's a strategic move toward the most aligned, empowered, and unstoppable version of yourself.
+            </Text>
+            <Text style={{ ...styles.normalText, marginBottom: 10 }}>
+              Are you ready to stop waiting for permission—and start building the reality that reflects who you already are?
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+              <CalendarIcon />
+              <Text style={{ marginLeft: 4, fontWeight: 'bold' }}>
+                Book your complimentary 20 minute discovery session with an Accredited Neuro Change Practitioner today. Your next breakthrough isn't in the future. It's in your decision to act now.
+              </Text>
+            </View>
+          </View>
         </View>
       </Page>
     </Document>
@@ -673,6 +700,11 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
 // Generate practitioner PDF with properly structured data
 export const generatePractitionerPDF = async (firstName: string, practitionerReport: PractitionerReport) => {
   const report = practitionerReport;
+
+  // Check if there are highlight sections in the report structure
+  const hasHighlights = report.sections?.some(section => 
+    section.title && section.title.toLowerCase().includes('highlight')
+  );
 
   const PractitionerPDF = (
     <Document>
@@ -692,16 +724,19 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
         {/* Content container */}
         <View style={styles.contentContainer}>
           <View style={styles.titleContainer}>
-            <Text style={styles.reportTitle}>{parseTrademarks(report.header?.title || 'Practitioner Case Report')}: {parseTrademarks(firstName)}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+              <CompassIcon />
+              <Text style={{ ...styles.reportTitle, marginLeft: 4 }}>Practitioner Case Report : {parseTrademarks(firstName)}</Text>
+            </View>
           </View>
 
           {/* Client Summary Section */}
-          {report.sections && report.sections.map((section: SectionData) => {
-            if (section.type === 'section' && section.title === 'Client Summary') {
+          {report.sections && report.sections.map((section: SectionData, sectionIndex: number) => {
+            if (section.title === 'Client Summary') {
               return (
                 <React.Fragment key={`summary_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
-                    <Text style={styles.sectionTitle}>{parseTrademarks(section.title)}</Text>
+                    <Text style={styles.sectionTitle}>Client Profile Summary</Text>
                     {section.content && <Text style={styles.normalText}>{parseTrademarks(section.content)}</Text>}
 
                     {section.primaryObjective && (
@@ -715,12 +750,63 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
                 </React.Fragment>
               );
             }
+            
+            // Check if this is a highlight section and use alternating icons
+            if (section.title && section.title.toLowerCase().includes('highlight')) {
+              const highlightData: HighlightData = {
+                title: section.title,
+                content: section.content || '',
+                points: section.items?.reduce((obj, item, i) => {
+                  obj[`Point ${i+1}`] = item;
+                  return obj;
+                }, {} as Record<string, string>)
+              };
+              
+              return (
+                <React.Fragment key={`highlight_section_${sectionIndex}`}>
+                  {renderHighlightSection(highlightData, `prac_highlight_${sectionIndex}`)}
+                  <SectionSeparator />
+                </React.Fragment>
+              );
+            }
+            
             return null;
           })}
 
+          {/* Practitioner Notes Section */}
+          {report.practitionerNotes && (
+            <React.Fragment>
+              <View style={{ marginBottom: 15 }} wrap>
+                <Text style={styles.sectionTitle}>Practitioner Notes</Text>
+                
+                {report.practitionerNotes.temperament && (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text style={styles.subsectionTitle}>Client Temperament:</Text>
+                    <Text style={styles.normalText}>{parseTrademarks(report.practitionerNotes.temperament)}</Text>
+                  </View>
+                )}
+                
+                {report.practitionerNotes["best-practices"] && report.practitionerNotes["best-practices"].length > 0 && (
+                  <View style={{ marginBottom: 10 }}>
+                    <Text style={styles.subsectionTitle}>Best Practices for This Client:</Text>
+                    {report.practitionerNotes["best-practices"].map((practice: string, idx: number) => (
+                      <View key={`practice_${idx}`} style={styles.bulletRow}>
+                        <Text style={styles.bulletMarker}>•</Text>
+                        <Text style={styles.bulletPoint}>{parseTrademarks(practice)}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+              <SectionSeparator />
+            </React.Fragment>
+          )}
+
           {/* Other Sections */}
-          {report.sections && report.sections.map((section: SectionData) => {
-            if (section.type === 'section' && section.title !== 'Client Summary' && section.title !== 'Neuro Change Method™: Your 4-Phase Transformation Journey') {
+          {report.sections && report.sections.map((section: SectionData, sectionIndex: number) => {
+            if (section.title !== 'Client Summary' && 
+                section.title !== 'Neuro Change Method™: Your 4-Phase Transformation Journey' &&
+                !(section.title && section.title.toLowerCase().includes('highlight'))) {
               return (
                 <React.Fragment key={`section_${section.title}`}>
                   {renderSectionWithItems(section, `prac_section_${section.title}`)}

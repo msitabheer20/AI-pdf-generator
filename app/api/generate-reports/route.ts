@@ -88,14 +88,8 @@ export async function POST(request: Request) {
         const { firstName, email, ques1, ques2, ques3, ques4, ques5 } = result.data;
 
         const prompt = `
-        You are DreamScape AI, an advanced personal transformation assistant operating exclusively within ChatGPT specifically trained with the Neuro Change Method™, so it's essential that All responses are science-backed and evidence-based, Your role is to generate two deeply personalized reports based on the user's assessment responses.
+        You are DreamScape AI, an advanced personal transformation assistant operating exclusively within ChatGPT, specifically trained in the Neuro Change Method™—a research-backed, multi-phase framework designed to facilitate deep, lasting personal change. Your role is to generate two deeply personalized reports based on the user's assessment responses by analyzing their reflections and challenges through the lens of mindset, identity, belief systems, and behavior change. All responses must be science-backed, evidence-based, and written with empathy, precision, and insight to support meaningful transformation. Avoid jargon or referencing the Neuro Change Method by name unless explicitly instructed. Your goal is to help the client gain clarity, motivation, and insight into how their mindset and identity are influencing their behavior—and how to begin transforming both. Use a warm, confident, and empowering tone.
 
-        **Guidelines:**
-        - **Personalization:** Craft highly individualized content that precisely addresses the client's unique experiences, goals, and challenges. Avoid generic platitudes.
-        - **Precision & Diversity:** Ensure each section provides distinct insights without overlapping content. Vary your linguistic patterns and analytical approaches across sections.
-        - **Voice & Tone:** Maintain a balance of empathetic understanding and authoritative expertise. Convey warmth while establishing credibility.
-        - **Analysis Depth:** Identify subtle patterns across the client's responses to reveal deeper insights about their psychological state and transformation potential.
-            
         **User Input:**
         - First Name: ${firstName}
         - Email: ${email}
@@ -108,59 +102,31 @@ export async function POST(request: Request) {
             Return a JSON object with the following structure:
             {
               "clientReport": {
-                "header-section": {
-                  "title": "Client Assessment Report",
-                  "subtitle": "Prepared by DreamScape AI",
-                  "openingStatement": "a motivational opening statement for the client report to elevate the perceived value of the assessment and prime the reader for a meaningful experience"
-                },
                 "question-section": [
                   {
-                    "type": "question",
-                    "title": "1. Where are you right now in your life, emotionally and mentally?",
-                    "clientResponse": "Client's exact response here",
-                    "aiInsight": "a comprehensive DreamScape AI analysis here"
+                    "type": "question-insight",
+                    "aiInsight": "Offer a three to four paragraph, insight-rich analysis using the principles and tools of the Neuro Change Method defined in this prompt, without referencing the method by name. Use a warm, confident, and empowering tone. Highlight both strengths and growth opportunities.Where relevant, connect insights across responses to show underlying patterns.You may infer the presence of limiting beliefs, identity conflicts, emotional suppression, subconscious habits, or growth mindset gaps—but do so supportively and with clarity.Frame interpretations through tools like:self-concordance mapping, automaticity training, belief engineering, purpose integration protocols, flow state activation, goal-colored glasses, subconscious priming, implementation intentions, belief realignment, emotional regulation, identity-based habit formation"
                   },
-                  // More question sections for questions 2-5
+                  // More question sections for questions 2-5, only include aiInsight for each question
                 ],
-                "highlight-section": [
-                    {
+                "highlight-section": {
                         "type": "highlight",
                         "title": "What the Neuro Change Method™ Can Do for You",
-                        "content": "Explanation of benefits based on client's responses"
                         "points": {
-                            item1: "content of point 1",
-                            // five to six more such key value points which will read like the pillars or modules of a personal development framework—each one representing a methodology or intervention used within the Neuro Change Method™ program, assessment, or coaching experience, use appropriate headings in place of item1, item2 and so on.
+                            item1: "content of item 1",
+                            // five to six more such key value points. replace these item1, item2 ... with the tools name. use the tool names like self-concordance mapping, automaticity training, belief engineering, purpose integration protocols, flow state activation, goal-colored glasses, subconscious priming, implementation intentions, belief realignment, emotional regulation, identity-based habit formation. choose the best tools which will help the client for the transformation and the content will contain 5 to 6 words difining the effect of that tool.
                         },
                         "closingStatement": "a motivational closing statement for the journey of the client"
-                    },
-                    {
-                        "type": "highlight",
-                        "title": "Why Now, Why You, and Why a Neuro Change Practitioner?",
-                        "content": "comprehensive and compelling explanation of why the client should work with a practitioner, generate two to three paragraphs",
-                        "points": [
-                            "content of point 1",
-                            // three to four more such points which will define the quality of the practitioner and the Neuro Change Method™ based on the client's responses.
-                        ]
-                    }
-                ],
-                "closing-section": [
-                    {
-                        "type": "closing",
-                        "content": "a motivational closing statement for the client report"
-                        // a catchy closing statement content like "book your complimentary 20-minute discovery session today. Your next breakthrough isn't in the future. It's your decision to act now. "
-                    }
-                ]
+                }
               },
+
               "practitionerReport": {
-                "header": {
-                  "title": "Practitioner Case Report"
-                },
                 "sections": [
                   {
                     "type": "section",
-                    "title": "Client Summary",
-                    "content": "Comprehensive overview of client's issues",
-                    "primaryObjective": "Clear goal statement based on assessment"
+                    "title": "Client Profile Summary",
+                    "content": "Comprehensive overview of client's issues in two to three paragraphs",
+                    "primaryObjective": "Clear goal statement based on assessment in one paragraph"
                   },
                   {
                     "type": "section",
@@ -184,38 +150,12 @@ export async function POST(request: Request) {
                         "type": "phase",
                         "title": "Phase 1: Consciousness",
                         "items": [  
-                            "focus": "focus of this phase based on the client's responses",
+                            "focus": "focus of this phase based on the client's responses in two to three key words",
                             "tools": "tools used in this phase based on the client's responses",
-                            "goal": "goal of this phase based on the client's responses"
+                            "goal": "goal of this phase and how it will help the client achieve the primary objective"
                         ]
                       },
-                      {
-                        "type": "phase",
-                        "title": "Phase 2: Mindset (NeuroPlasticity)",
-                        "items": [
-                            "focus": "focus of this phase based on the client's responses",
-                            "tools": "tools used in this phase based on the client's responses",
-                            "goal": "goal of this phase based on the client's responses"
-                        ]
-                      },
-                      {
-                        "type": "phase",
-                        "title": "Phase 3: The Subconscious",
-                        "items": [
-                            "focus": "focus of this phase based on the client's responses",
-                            "tools": "tools used in this phase based on the client's responses",
-                            "goal": "goal of this phase based on the client's responses"
-                        ]
-                      },
-                      {
-                        "type": "phase",
-                        "title": "Phase 4: The Brain (Permanent Integration)",
-                        "items": [
-                            "focus": "focus of this phase based on the client's responses",
-                            "tools": "tools used in this phase based on the client's responses",
-                            "goal": "goal of this phase based on the client's responses"
-                        ]
-                      }
+                      // 3 more such phase entries following same structure with title as Phase 2: Mindset (NeuroPlasticity), Phase 3: The Subconscious, Phase 4: The Brain (Permanent Integration)
                     ]
                   },
                 "milestones": [
@@ -227,15 +167,23 @@ export async function POST(request: Request) {
                   // 5 more milestone entries following same structure
                 ],
                 "projectedTransformationOutcomes": [
-                  "Specific measurable outcome 1 based on the client's responses",
-                  "Specific measurable outcome 2 based on the client's responses",
-                  "Specific measurable outcome 3 based on the client's responses"
+                  "Specific measurable outcome 1 which will be seen in client after completion of the program",
+                  // similarly 4 to 5 more such projected transformation outcomes
                 ],
-                "closingStatement": "a motivational closing statement for the practitioner report for the client"
+                "closingStatement": "a motivational closing statement for the practitioner report for the client",
+                "practitionerNotes": {
+                  "temperament": "temperament of the client based on the client's responses",
+                  // example: "Sandra is resilient, insightful and methodical. She values intelligence, sophistication and evidence-based approaches. She thrives in structured, high-level work environments that appreciate her analytical skills and transformative impact."
+
+                  "best-practices": [
+                    "best-practice 1 for the practitioner to follow based on the client's responses and conditions",
+                    // similarly 3 to 4 more such best practices
+                  ]
+                }
               }
             }
 
-            Make sure to deeply personalize both reports to the client's specific situation based on their assessment responses. The content should feel tailored to their unique needs, goals, and challenges.
+            Make sure to deeply personalize both reports to the client's specific situation based on their assessment responses. The content should feel tailored to their unique needs, goals, and challenges. Note that for the client report, you only need to provide the AI insights for each question - the questions and client responses will be handled separately.
         `;
 
         const completion = await openai.chat.completions.create({
@@ -249,6 +197,17 @@ export async function POST(request: Request) {
 
         const content = completion.choices[0].message.content || '';
         const reportData = JSON.parse(content);
+
+        // Simple validation to ensure expected structure exists
+        if (reportData.clientReport && !reportData.clientReport['highlight-section']) {
+            // Create a default highlight section if missing
+            reportData.clientReport['highlight-section'] = {
+                "type": "highlight",
+                "title": "What the Neuro Change Method™ Can Do for You",
+                "points": {},
+                "closingStatement": "Your journey begins now."
+            };
+        }
 
         return NextResponse.json({
             clientContent: reportData.clientReport,
