@@ -647,7 +647,7 @@ const renderPhasesSection = (section: SectionData, firstName: string) => (
         </React.Fragment>
       ))}
     </View>
-    {/* <SectionSeparator /> */}
+    <SectionSeparator />
   </React.Fragment>
 );
 
