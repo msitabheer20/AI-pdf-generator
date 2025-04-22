@@ -142,7 +142,8 @@ export default function Home() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate reports');
+        // throw new Error(errorData.error || 'Our servers are having a moment—please try again shortly');
+        throw new Error('Our servers are having a moment — please try again shortly');
       }
 
       const { clientContent, practitionerContent, firstName } = await response.json();
@@ -168,7 +169,7 @@ export default function Home() {
 
     } catch (err) {
       console.error('Error:', err);
-      setError('An error occurred. Please try again.');
+      setError('Whoops! Something went wrong — please try again in a moment');
       setRetryMode(true);
     } finally {
       setLoading(false);
