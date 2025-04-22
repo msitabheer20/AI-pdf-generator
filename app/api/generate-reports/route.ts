@@ -170,7 +170,6 @@ export async function POST(request: Request) {
                             "tools": "tools names used in this phase based on the client's responses separated by |",
                             // deeply think before selecting these tools;interpret all the tools available to you and then decide which tool will be best for the client for their improvement
                             "goal": "a two line goal of this phase and how it will help the client achieve the primary objective also include the text portions from client response and how it will get changed for example : Shift the inner story from "I am unworthy" to "I am already enough."
-"
                         }
                       },
                       // 3 more such phase entries following same structure with title as Phase 2: Mindset (NeuroPlasticity), Phase 3: The Subconscious, Phase 4: The Brain (Permanent Integration)
