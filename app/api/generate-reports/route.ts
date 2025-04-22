@@ -110,7 +110,7 @@ export async function POST(request: Request) {
         - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
         - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
 
-            Return a JSON object with the following structure:
+            Return a JSON object with the following structure without missing any detail:
             {
               "clientReport": {
                 "question-section": [
@@ -140,8 +140,8 @@ export async function POST(request: Request) {
                   {
                     "type": "section",
                     "title": "Client Profile Summary",
-                    "content": "replace this with generated text",
-                    // content should contain general overview about the client in about 100 words after that include comprehensive overview of client's issues in at least 400 to 500 words.
+                    "content": "replace this with two paragraphs as mentioned below",
+                    // first paragraph in content should contain general overview about the client in 100 words and second para will contain comprehensive overview of client's issues in at least 400 to 500 words.
                     "primaryObjective": "Clear goal statement based on assessment in one paragraph"
                   },
                   {
@@ -169,7 +169,8 @@ export async function POST(request: Request) {
                             "focus": "focus of this phase based on the client's responses in two to three key words separated by plus sign",
                             "tools": "tools names used in this phase based on the client's responses separated by |",
                             // deeply think before selecting these tools;interpret all the tools available to you and then decide which tool will be best for the client for their improvement
-                            "goal": "goal of this phase and how it will help the client achieve the primary objective"
+                            "goal": "a two line goal of this phase and how it will help the client achieve the primary objective also include the text portions from client response and how it will get changed for example : Shift the inner story from "I am unworthy" to "I am already enough."
+"
                         }
                       },
                       // 3 more such phase entries following same structure with title as Phase 2: Mindset (NeuroPlasticity), Phase 3: The Subconscious, Phase 4: The Brain (Permanent Integration)
