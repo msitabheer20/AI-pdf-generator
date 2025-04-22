@@ -970,7 +970,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
           {/* Practitioner Notes Section - Moved after closing statement */}
           {report.practitionerNotes && (
             <React.Fragment>
-              <View style={{ marginBottom: 15 }} wrap>
+              <View wrap>
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
                   <PencilIcon />
                   <Text style={{ ...styles.sectionTitle, marginLeft: 4 }}>Practitioner Notes</Text>
