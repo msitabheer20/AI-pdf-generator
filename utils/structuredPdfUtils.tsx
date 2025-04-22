@@ -31,6 +31,11 @@ const CompassIcon = () => (
   <Image src="/assets/compass.png" style={{ width: 18, height: 18 }} />
 );
 
+// Pencil icon for practitioner notes
+const PencilIcon = () => (
+  <Image src="/assets/pencil.png" style={{ width: 16, height: 16 }} />
+);
+
 // Improved styles with better structure
 const styles = StyleSheet.create({
   page: {
@@ -93,6 +98,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#000000',
     marginBottom: 15,
+    marginTop: 15,
     fontStyle: 'italic',
   },
   openingStatement: {
@@ -103,7 +109,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: 'bold',
     marginTop: 10,
     marginBottom: 10,
@@ -117,7 +123,7 @@ const styles = StyleSheet.create({
     color: '#000000',
   },
   subsectionTitle: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: 'bold',
     marginTop: 8,
     marginBottom: 4,
@@ -142,7 +148,7 @@ const styles = StyleSheet.create({
   bulletPoint: {
     marginLeft: 10,
     fontSize: 12,
-    lineHeight: 1.6,
+    lineHeight: 1.4,
     color: '#000000',
   },
   bulletRow: {
@@ -186,7 +192,7 @@ const styles = StyleSheet.create({
     marginLeft: 15,
     fontSize: 12,
     lineHeight: 1.6,
-    marginBottom: 3,
+    marginBottom: 2,
     color: '#000000',
   },
   phaseContent: {
@@ -291,6 +297,11 @@ const SectionSeparator = () => (
   <View style={styles.sectionSeparator} />
 );
 
+// Page break component to force content to start on a new page
+const PageBreak = () => (
+  <View break />
+);
+
 // Types for structured data
 // type ContentType =
 //   | 'section'
@@ -334,7 +345,9 @@ type MilestoneItem = {
 type QuestionData = {
   title: string;
   clientResponse: string;
-  aiInsight: string;
+  aiInsight?: string;
+  aiInsights?: string[];
+  type?: string;
 };
 
 type HighlightData = {
@@ -360,6 +373,8 @@ type SectionData = {
   items?: string[];
   primaryObjective?: string;
   phases?: PhaseData[];
+  'sub-title'?: string;
+  reason?: string;
 };
 
 type ClientReport = {
@@ -378,6 +393,7 @@ type PractitionerReport = {
     type: string;
     title: string;
     content?: string;
+    items?: string[];
     primaryObjective?: string;
     phases?: PhaseData[];
   }>;
@@ -394,6 +410,17 @@ type PractitionerReport = {
   };
 };
 
+// Format camelCase to Title Case (e.g., "identityReinforcement" -> "Identity Reinforcement")
+const formatToolName = (camelCaseText: string): string => {
+  if (!camelCaseText) return '';
+  
+  // First, add spaces before capital letters
+  const withSpaces = camelCaseText.replace(/([A-Z])/g, ' $1');
+  
+  // Capitalize the first letter and trim any leading space
+  return withSpaces.charAt(0).toUpperCase() + withSpaces.slice(1).trim();
+};
+
 // Render client response and AI insight
 const renderQuestionSection = (questionData: QuestionData, key: string | number) => (
   <View key={key} style={{ marginBottom: 10 }} wrap>
@@ -404,7 +431,13 @@ const renderQuestionSection = (questionData: QuestionData, key: string | number)
     </View>
     <View style={{ marginBottom: 8 }} wrap>
       <Text style={styles.subsectionTitle}>DreamScape AI Reflection:</Text>
-      <Text style={styles.normalText}>{parseTrademarks(questionData.aiInsight)}</Text>
+      {questionData.aiInsights && questionData.aiInsights.length > 0 ? (
+        questionData.aiInsights.map((paragraph, idx) => (
+          <Text key={`insight_${idx}`} style={{...styles.normalText, marginBottom: 8}}>{parseTrademarks(paragraph)}</Text>
+        ))
+      ) : (
+        <Text style={styles.normalText}>{parseTrademarks(questionData.aiInsight || '')}</Text>
+      )}
     </View>
   </View>
 );
@@ -424,19 +457,27 @@ const renderHighlightSection = (highlightData: HighlightData, key: string | numb
           Under the care of a Certified Neuro Change Practitioner, you'll be guided through a precision-based, science-backed transformation that uses:
         </Text>
         {Object.entries(highlightData.points).map(([pointKey, pointValue], idx) => {
-          // Extract the actual content if the key has a format like "•item1: "
-          // Also handle any other potential prefixes or formatting
-          const cleanKey = pointKey
-            .replace(/^•?\s*item\d+:\s*/, '') // Remove •itemX: format
-            .replace(/^•?\s*/, '')            // Remove any bullet prefix
-            .replace(/:\s*$/, '');            // Remove trailing colon
+          // Extract the actual content if the key has a format like "item1", "item2", etc.
+          // But preserve the key if it's already a proper tool name
+          const isGenericKey = pointKey.match(/^item\d+$/);
+          const cleanKey = isGenericKey 
+            ? '' 
+            : formatToolName(pointKey
+                .replace(/^•?\s*/, '')      // Remove any bullet prefix
+                .replace(/:\s*$/, ''));      // Remove trailing colon
           
           return (
             <View key={`${key}_point_${idx}`} style={styles.bulletRow}>
               <Text style={{ ...styles.bulletMarker, fontWeight: 'bold' }}>•</Text>
               <Text style={styles.bulletPoint}>
-                <Text style={styles.boldText}>{parseTrademarks(cleanKey)}: </Text>
-                {parseTrademarks(pointValue as string)}
+                {cleanKey ? (
+                  <>
+                    <Text style={styles.boldText}>{parseTrademarks(cleanKey)}: </Text>
+                    {parseTrademarks(pointValue as string)}
+                  </>
+                ) : (
+                  parseTrademarks(pointValue as string)
+                )}
               </Text>
             </View>
           );
@@ -466,22 +507,31 @@ const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
     {phaseData.items && (
       <View style={{ marginLeft: 15 }}>
         {phaseData.items.focus && (
-          <Text style={styles.phaseItem}>
-            <Text style={{ ...styles.boldText, color: '#333333' }}>Focus: </Text>
-            {parseTrademarks(phaseData.items.focus)}
-          </Text>
+          <View style={styles.bulletRow}>
+            <Text style={styles.bulletMarker}>•</Text>
+            <Text style={styles.bulletPoint}>
+              <Text style={{ ...styles.boldText, fontStyle: 'italic' }}>Focus: </Text>
+              {parseTrademarks(phaseData.items.focus)}
+            </Text>
+          </View>
         )}
         {phaseData.items.tools && (
-          <Text style={styles.phaseItem}>
-            <Text style={{ ...styles.boldText, color: '#333333' }}>Tools: </Text>
-            {parseTrademarks(phaseData.items.tools)}
-          </Text>
+          <View style={styles.bulletRow}>
+            <Text style={styles.bulletMarker}>•</Text>
+            <Text style={styles.bulletPoint}>
+              <Text style={{ ...styles.boldText, fontStyle: 'italic' }}>Tools: </Text>
+              {parseTrademarks(phaseData.items.tools)}
+            </Text>
+          </View>
         )}
         {phaseData.items.goal && (
-          <Text style={styles.phaseItem}>
-            <Text style={{ ...styles.boldText, color: '#333333' }}>Goal: </Text>
-            {parseTrademarks(phaseData.items.goal)}
-          </Text>
+          <View style={styles.bulletRow}>
+            <Text style={styles.bulletMarker}>•</Text>
+            <Text style={styles.bulletPoint}>
+              <Text style={{ ...styles.boldText, fontStyle: 'italic' }}>Goal: </Text>
+              {parseTrademarks(phaseData.items.goal)}
+            </Text>
+          </View>
         )}
       </View>
     )}
@@ -490,9 +540,17 @@ const renderPhaseSection = (phaseData: PhaseData, key: string | number) => (
 
 // Render section with items (bullet points)
 const renderSectionWithItems = (sectionData: SectionData, key: string | number) => (
-  <View key={key} style={{ marginBottom: 10 }} wrap>
+  <View key={key} wrap>
     <Text style={styles.sectionTitle}>{parseTrademarks(sectionData.title)}</Text>
     {sectionData.content && <Text style={styles.normalText}>{parseTrademarks(sectionData.content)}</Text>}
+    
+    {/* Support for sub-title and reason in Transformation Theme section */}
+    {sectionData['sub-title'] && (
+      <View style={{ marginTop: 5, marginBottom: 5 }}>
+        <Text style={{ ...styles.boldText, marginBottom: 5 }}>{parseTrademarks(sectionData['sub-title'])}</Text>
+        {sectionData.reason && <Text style={styles.normalText}>{parseTrademarks(sectionData.reason)}</Text>}
+      </View>
+    )}
 
     {sectionData.items && sectionData.items.map((item: string, idx: number) => (
       <View key={`${key}_item_${idx}`} style={styles.bulletRow}>
@@ -576,21 +634,94 @@ const parseTrademarks = (text: string) => {
   );
 };
 
+// Phases Section with page break
+const renderPhasesSection = (section: SectionData, firstName: string) => (
+  <React.Fragment>
+    <PageBreak />
+    <View style={{ marginBottom: 10 }} wrap>
+      <Text style={styles.sectionTitle}>{parseTrademarks(section.title)}</Text>
+
+      {section.phases && section.phases.map((phase: PhaseData, phaseIndex: number) => (
+        <React.Fragment key={`phase_${phaseIndex}`}>
+          {renderPhaseSection(phase, `prac_phase_${phaseIndex}`)}
+        </React.Fragment>
+      ))}
+    </View>
+    {/* <SectionSeparator /> */}
+  </React.Fragment>
+);
+
 // Generate client PDF with properly structured data
 export const generateClientPDF = async (firstName: string, clientReport: ClientReport, frontendResponses?: { questions: string[], responses: { [key: string]: string } }) => {
   const report = clientReport;
 
   // Create question data from frontend responses if provided
   let questionSection = report['question-section'];
-  if (frontendResponses && frontendResponses.questions && frontendResponses.responses) {
+  
+  // Transform question sections to ensure consistent format
+  if (questionSection) {
+    questionSection = questionSection.map((item, index) => {
+      // Handle new format with type and aiInsights
+      if (item.type === "question-insight" && Array.isArray(item.aiInsights)) {
+        const qKey = `ques${index + 1}`;
+        return {
+          title: frontendResponses?.questions?.[index] || `Question ${index + 1}`,
+          clientResponse: frontendResponses?.responses?.[qKey] || '',
+          aiInsights: item.aiInsights
+        };
+      }
+      
+      // Handle old format or mixed format
+      return {
+        title: item.title || frontendResponses?.questions?.[index] || `Question ${index + 1}`,
+        clientResponse: item.clientResponse || frontendResponses?.responses?.[`ques${index + 1}`] || '',
+        aiInsight: item.aiInsight || '',
+        aiInsights: Array.isArray(item.aiInsights) ? item.aiInsights : []
+      };
+    });
+  } 
+  // Create from frontend responses if no question section provided
+  else if (frontendResponses && frontendResponses.questions && frontendResponses.responses) {
     questionSection = frontendResponses.questions.map((question, index) => {
       const qKey = `ques${index + 1}`;
       return {
         title: question,
         clientResponse: frontendResponses.responses[qKey] || '',
-        aiInsight: report['question-section']?.[index]?.aiInsight || 'Analysis in progress...'
+        aiInsight: 'Analysis in progress...'
       };
     });
+  }
+
+  // If we still don't have question section data, create default
+  if (!questionSection || questionSection.length === 0) {
+    console.warn("No question section data available, using placeholder");
+    questionSection = [
+      {
+        title: "Where are you right now in your life, emotionally and mentally?",
+        clientResponse: "Response not available",
+        aiInsight: "Analysis in progress..."
+      },
+      {
+        title: "What is something you deeply want—but haven't yet achieved?",
+        clientResponse: "Response not available",
+        aiInsight: "Analysis in progress..."
+      },
+      {
+        title: "What recurring thoughts, fears, or beliefs do you find yourself struggling with?",
+        clientResponse: "Response not available",
+        aiInsight: "Analysis in progress..."
+      },
+      {
+        title: "When was the last time you felt truly aligned—with yourself, your goals, or your life?",
+        clientResponse: "Response not available",
+        aiInsight: "Analysis in progress..."
+      },
+      {
+        title: "If you could reprogram one part of your mind—what would it be, and why?",
+        clientResponse: "Response not available",
+        aiInsight: "Analysis in progress..."
+      }
+    ];
   }
 
   const ClientPDF = (
@@ -622,7 +753,7 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
           <SectionSeparator />
 
           {/* Question Sections */}
-          {questionSection && questionSection.map((question: QuestionData, index: number) => (
+          {questionSection && questionSection.length > 0 && questionSection.map((question: QuestionData, index: number) => (
             <React.Fragment key={`question_${index}`}>
               {renderQuestionSection(question, `client_question_${index}`)}
               {index < (questionSection?.length ?? 0) - 1 && <SectionSeparator />}
@@ -682,9 +813,9 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
             <Text style={{ ...styles.normalText, marginBottom: 10 }}>
               Are you ready to stop waiting for permission—and start building the reality that reflects who you already are?
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 }}>
               <CalendarIcon />
-              <Text style={{ marginLeft: 4, fontWeight: 'bold' }}>
+              <Text style={{ marginLeft: 4, fontWeight: 'bold', flex: 1 }}>
                 Book your complimentary 20 minute discovery session with an Accredited Neuro Change Practitioner today. Your next breakthrough isn't in the future. It's in your decision to act now.
               </Text>
             </View>
@@ -705,6 +836,14 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
   const hasHighlights = report.sections?.some(section => 
     section.title && section.title.toLowerCase().includes('highlight')
   );
+
+  // Get only the "other sections" (not Client Summary, Phases, or Highlights)
+  const otherSections = report.sections?.filter(section => 
+    section.title !== 'Client Summary' && 
+    section.title !== 'Client Profile Summary' &&
+    section.title !== 'Neuro Change Method™: Your 4-Phase Transformation Journey' &&
+    !(section.title && section.title.toLowerCase().includes('highlight'))
+  ) || [];
 
   const PractitionerPDF = (
     <Document>
@@ -732,11 +871,11 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
 
           {/* Client Summary Section */}
           {report.sections && report.sections.map((section: SectionData, sectionIndex: number) => {
-            if (section.title === 'Client Summary') {
+            if (section.title === 'Client Summary' || section.title === 'Client Profile Summary') {
               return (
                 <React.Fragment key={`summary_section`}>
                   <View style={{ marginBottom: 10 }} wrap>
-                    <Text style={styles.sectionTitle}>Client Profile Summary</Text>
+                    <Text style={{...styles.sectionTitle, marginTop: 5}}>Client Profile Summary</Text>
                     {section.content && <Text style={styles.normalText}>{parseTrademarks(section.content)}</Text>}
 
                     {section.primaryObjective && (
@@ -773,11 +912,69 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
             return null;
           })}
 
-          {/* Practitioner Notes Section */}
+          {/* Other Sections */}
+          {otherSections.map((section: SectionData, sectionIndex: number) => (
+            <React.Fragment key={`section_${section.title}`}>
+              {renderSectionWithItems(section, `prac_section_${section.title}`)}
+              {sectionIndex < otherSections.length - 1 && <SectionSeparator />}
+            </React.Fragment>
+          ))}
+
+          {/* Phases Section - with forced page break */}
+          {report.sections && report.sections.map((section: SectionData) => {
+            if (section.title === 'Neuro Change Method™: Your 4-Phase Transformation Journey') {
+              return (
+                <React.Fragment key={`phases_section`}>
+                  {renderPhasesSection(section, firstName)}
+                </React.Fragment>
+              );
+            }
+            return null;
+          })}
+
+          {/* Milestones Table */}
+          {report.milestones && report.milestones.length > 0 && (
+            <React.Fragment>
+              {renderMilestoneTable(report.milestones)}
+              <SectionSeparator />
+            </React.Fragment>
+          )}
+
+          {/* Projected Transformation Outcomes */}
+          {report.projectedTransformationOutcomes && (
+            <React.Fragment>
+              <View style={{ marginBottom: 10 }} wrap>
+                <Text style={styles.sectionTitle}>Projected Transformation Outcomes</Text>
+                <Text style={styles.normalText}>If {parseTrademarks(firstName)} fully embraces this transformation journey, expect:</Text>
+                {report.projectedTransformationOutcomes.map((outcome: string, idx: number) => (
+                  <View key={`outcome_${idx}`} style={styles.bulletRow}>
+                    <Text style={styles.bulletMarker}>•</Text>
+                    <Text style={styles.bulletPoint}>{parseTrademarks(outcome)}</Text>
+                  </View>
+                ))}
+              </View>
+              {/* <SectionSeparator /> */}
+            </React.Fragment>
+          )}
+
+          {/* Closing Statement */}
+          {report.closingStatement && (
+            <React.Fragment>
+              <View style={styles.closingSection}>
+                <Text>{parseTrademarks(report.closingStatement)}</Text>
+              </View>
+              <SectionSeparator />
+            </React.Fragment>
+          )}
+
+          {/* Practitioner Notes Section - Moved after closing statement */}
           {report.practitionerNotes && (
             <React.Fragment>
               <View style={{ marginBottom: 15 }} wrap>
-                <Text style={styles.sectionTitle}>Practitioner Notes</Text>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+                  <PencilIcon />
+                  <Text style={{ ...styles.sectionTitle, marginLeft: 4 }}>Practitioner Notes</Text>
+                </View>
                 
                 {report.practitionerNotes.temperament && (
                   <View style={{ marginBottom: 10 }}>
@@ -798,75 +995,8 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
                   </View>
                 )}
               </View>
-              <SectionSeparator />
+              {/* No SectionSeparator here since this is the last section */}
             </React.Fragment>
-          )}
-
-          {/* Other Sections */}
-          {report.sections && report.sections.map((section: SectionData, sectionIndex: number) => {
-            if (section.title !== 'Client Summary' && 
-                section.title !== 'Neuro Change Method™: Your 4-Phase Transformation Journey' &&
-                !(section.title && section.title.toLowerCase().includes('highlight'))) {
-              return (
-                <React.Fragment key={`section_${section.title}`}>
-                  {renderSectionWithItems(section, `prac_section_${section.title}`)}
-                  <SectionSeparator />
-                </React.Fragment>
-              );
-            }
-            return null;
-          })}
-
-          {/* Phases Section */}
-          {report.sections && report.sections.map((section: SectionData) => {
-            if (section.title === 'Neuro Change Method™: Your 4-Phase Transformation Journey') {
-              return (
-                <React.Fragment key={`phases_section`}>
-                  <View style={{ marginBottom: 10 }} wrap>
-                    <Text style={styles.sectionTitle}>{parseTrademarks(section.title)}</Text>
-
-                    {section.phases && section.phases.map((phase: PhaseData, phaseIndex: number) => (
-                      <React.Fragment key={`phase_${phaseIndex}`}>
-                        {renderPhaseSection(phase, `prac_phase_${phaseIndex}`)}
-                      </React.Fragment>
-                    ))}
-                  </View>
-                  <SectionSeparator />
-                </React.Fragment>
-              );
-            }
-            return null;
-          })}
-
-          {/* Milestones Table */}
-          {report.milestones && report.milestones.length > 0 && (
-            <React.Fragment>
-              {renderMilestoneTable(report.milestones)}
-              <SectionSeparator />
-            </React.Fragment>
-          )}
-
-          {/* Projected Transformation Outcomes */}
-          {report.projectedTransformationOutcomes && (
-            <React.Fragment>
-              <View style={{ marginBottom: 10 }} wrap>
-                <Text style={styles.sectionTitle}>Projected Transformation Outcomes</Text>
-                {report.projectedTransformationOutcomes.map((outcome: string, idx: number) => (
-                  <View key={`outcome_${idx}`} style={styles.bulletRow}>
-                    <Text style={styles.bulletMarker}>•</Text>
-                    <Text style={styles.bulletPoint}>{parseTrademarks(outcome)}</Text>
-                  </View>
-                ))}
-              </View>
-              <SectionSeparator />
-            </React.Fragment>
-          )}
-
-          {/* Closing Statement */}
-          {report.closingStatement && (
-            <View style={styles.closingSection}>
-              <Text>{parseTrademarks(report.closingStatement)}</Text>
-            </View>
           )}
         </View>
       </Page>
