@@ -3,7 +3,19 @@ import OpenAI from 'openai';
 import { z } from 'zod';
 import DOMPurify from 'isomorphic-dompurify';
 
-const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+// Create OpenAI instance with timeout configuration
+const openai = new OpenAI({ 
+    apiKey: process.env.OPENAI_API_KEY,
+    timeout: 60000, // 60 second timeout
+    maxRetries: 2 // Limit retries to prevent excessive token usage
+});
+
+// Set API response timeout
+export const config = {
+    runtime: 'edge',
+    regions: ['iad1'], // Deploy to a fast region (US East)
+    maxDuration: 90 // 90 seconds max
+};
 
 const requestSchema = z.object({
     firstName: z
@@ -71,10 +83,34 @@ function sanitizeFormData(data: any) {
     return sanitized;
 }
 
+// Helper function to handle API call with timeout
+async function callOpenAIWithTimeout(systemPrompt: string, userPrompt: string) {
+    try {
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ],
+            temperature: 0.6,
+            max_tokens: 2500, // Reduced token count
+            response_format: { type: "json_object" },
+            top_p: 0.85
+        });
+        
+        return completion.choices[0].message.content || '';
+    } catch (error: any) {
+        console.error(`OpenAI API error: ${error.message}`);
+        if (error.code === 'ETIMEDOUT' || error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+            throw new Error('The request timed out. Please try again.');
+        }
+        throw error;
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const formData = await request.json();
-
         const sanitizedData = sanitizeFormData(formData);
 
         const result = requestSchema.safeParse(sanitizedData);
@@ -87,20 +123,33 @@ export async function POST(request: Request) {
 
         const { firstName, email, ques1, ques2, ques3, ques4, ques5 } = result.data;
 
-        const systemPrompt = `
-          You are DreamScape AI, an advanced personal transformation assistant operating exclusively within ChatGPT, specifically trained in the Neuro Change Method™—a research-backed, multi-phase framework designed to facilitate deep, lasting personal change. Your role is to generate two deeply personalized reports based on the user's assessment responses by analyzing their reflections and challenges through the lens of mindset, identity, belief systems, and behavior change. All responses must be science-backed, evidence-based, and written with empathy, precision, and insight to support meaningful transformation. Avoid jargon or referencing the Neuro Change Method by name unless explicitly instructed. Your goal is to help the client gain clarity, motivation, and insight into how their mindset and identity are influencing their behavior—and how to begin transforming both. Use a warm, confident, and empowering tone.
+        // Create more concise prompts
+        const baseSystemPrompt = `
+          You are DreamScape AI, an advanced personal transformation assistant trained in the Neuro Change Method™.
+          Your responses must be science-backed, evidence-based, and written with empathy.
+          
+          When analyzing responses, look for limiting beliefs, identity conflicts, emotional patterns, and mindset gaps.
+          Frame insights using tools like: self-concordance mapping, belief engineering, flow state activation, 
+          implementation intentions, belief realignment, identity-based habit formation, emotional rewiring, 
+          strategy bridging, and purpose mapping.
+          
+          Speak directly to the client using "you" and highlight strengths and growth areas.
+        `;
 
-          You will return a JSON object with two main sections:
-          1. clientReport - A personalized report for the client with insights on their responses and highlights of the Neuro Change Method
-          2. practitionerReport - A comprehensive report for practitioners with detailed analysis and transformation plan
+        // Client-specific system prompt
+        const clientSystemPrompt = `
+          ${baseSystemPrompt}
+          You will return a JSON object containing a personalized client report.
+        `;
 
-          When analyzing responses, you may infer the presence of limiting beliefs, identity conflicts, emotional suppression, subconscious habits, or growth mindset gaps—but do so supportively and with clarity. Frame interpretations through tools like: self-concordance mapping, automaticity training, belief engineering, purpose integration protocols, flow state activation, goal-colored glasses, subconscious priming, implementation intentions, belief realignment, emotional regulation, identity-based habit formation, Bus Metaphor, Emotional Rewiring, Worthiness Anchoring, belief Audits, strategy bridge, Purpose Mapping, MLQ, Timeline Integration, Flow Design, worth visualization, identity Reinforcement.
+        // Practitioner-specific system prompt
+        const practitionerSystemPrompt = `
+          ${baseSystemPrompt}
+          You will return a JSON object containing a comprehensive practitioner report.
+        `;
 
-          When writing assessments, speak directly to the client using second person ("you"). Highlight both their strengths and growth areas. Infer limiting beliefs, emotional blocks, or misalignments gently and constructively.
-          Avoid jargon or referencing the Neuro Change Method by name unless explicitly instructed.
-        `
-
-        const userPrompt = `
+        // More concise user input
+        const userInput = `
         **User Input:**
             - First Name: ${firstName}
             - Email: ${email}
@@ -108,146 +157,182 @@ export async function POST(request: Request) {
             - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
             - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
             - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
-        - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
-
-            Return a JSON object with the following structure without missing any detail:
-            {
-              "clientReport": {
-                "question-section": [
-                  {
-                    "type": "question-insight",
-                    "aiInsights": [
-                      "Detailed paragraph of at least 150 words analyzing client's response",
-                      "Second detailed paragraph of at least 150 words providing additional insights"
-                      // insight-rich analysis using the principles and tools of the Neuro Change Method defined in this prompt, without referencing the method by name. Highlight both strengths and growth opportunities. Where relevant, connect insights across responses to show underlying patterns.Frame interpretations through tools you have"
-                    ]
-                  },
-                  // similarly more objects for the questions 2-5
-                ],
-                "highlight-section": {
-                        "type": "highlight",
-                        "title": "What the Neuro Change Method™ Can Do for You",
-                    "points": {
-                        item1: "content of item 1",
-                        // five to six more such key value points. replace these item1, item2 ... with the tools name. choose the best tools which will help the client for the transformation and the content will contain 5 to 6 words defining the effect of that tool.
-                    },
-                    "closingStatement": "a motivational closing statement for the journey of the client"
-                }
-              },
-
-              "practitionerReport": {
-                "sections": [
-                  {
-                    "type": "section",
-                    "title": "Client Profile Summary",
-                    "content": "replace this with two paragraphs as mentioned below",
-                    // first paragraph in content should contain general overview about the client in 100 words and second para will contain comprehensive overview of client's issues in at least 200 to 300 words.
-                    "primaryObjective": "Clear goal statement based on assessment in one paragraph"
-                  },
-                  {
-                    "type": "section",
-                    "title": "Key Barriers:",
-                    "items": [
-                      "Specific psychological obstacle 1 based on the client's responses",
-                      // similar four to five obstacles strictly based on the client's responses and should be generated after deeply interpreting all the client responses.
-                    ]
-                  },
-                  {
-                    "type": "section",
-                    "title": "Transformation Theme:",
-                    "sub-title": "One-line statement capturing journey essence based on the client's responses",
-                    "reason": "a paragraph which defines how this theme aligns with the clients and his upcoming journey with Neuro Change Method"
-                  },
-                  {
-                    "type": "section",
-                    "title": "Neuro Change Method™: Your 4-Phase Transformation Journey",
-                    "phases": [
-                      {
-                        "type": "phase",
-                        "title": "Phase 1: Consciousness",
-                        "items": {  
-                            "focus": "focus of this phase based on the client's responses in two to three key words separated by plus sign",
-                            "tools": "tools names used in this phase based on the client's responses separated by |",
-                            // deeply think before selecting these tools;interpret all the tools available to you and then decide which tool will be best for the client for their improvement
-                            "goal": "a two line goal of this phase and how it will help the client achieve the primary objective also include the text portions from client response and how it will get changed for example : Shift the inner story from "I am unworthy" to "I am already enough."
-                        }
-                      },
-                      // 3 more such phase entries following same structure with title as Phase 2: Mindset (NeuroPlasticity), Phase 3: The Subconscious, Phase 4: The Brain (Permanent Integration)
-                    ]
-                  },
-                "milestones": [
-                  {
-                    "milestone": "First milestone description based on the client's responses",
-                    "targetWeek": "Week 1-2 based on the client's responses",
-                    "toolsAndFocus": "Tools and techniques for this milestone based on the client's responses"
-                  }
-                  // 5 more milestone entries following same structure
-                ],
-                "projectedTransformationOutcomes": [
-                  "Specific measurable outcome 1 which will be seen in client after completion of the program",
-                  // similarly 4 to 5 more such projected transformation outcomes
-                ],
-                "closingStatement": "a single line motivational closing statement for the practitioner report for the client",
-                "practitionerNotes": {
-                  "temperament": "temperament of the client based on the client's responses",
-                  // example: "Sandra is resilient, insightful and methodical. She values intelligence, sophistication and evidence-based approaches. She thrives in structured, high-level work environments that appreciate her analytical skills and transformative impact."
-
-                  "best-practices": [
-                    "best-practice 1 for the practitioner to follow based on the client's responses and conditions",
-                    // similarly 3 to 4 more such best practices
-                  ]
-                }
-              }
-            }
+            - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
         `;
 
-        const completion = await openai.chat.completions.create({
-            model: 'gpt-4o',
-            messages: [
-              { role: 'system', content: systemPrompt},
-              { role: 'user', content: userPrompt }
+        // Client-specific user prompt
+        const clientUserPrompt = `
+        ${userInput}
+
+        Return a JSON object with this structure:
+        {
+          "clientReport": {
+            "question-section": [
+              {
+                "type": "question-insight",
+                "aiInsights": [
+                  "First paragraph analyzing response (150 words)",
+                  "Second paragraph with additional insights (150 words)"
+                ]
+              }
+              // 4 more insight objects for remaining questions
             ],
-            temperature: 0.6,
-            max_tokens: 6000,
-            response_format: { type: "json_object" },
-            top_p: 0.85
-        });
+            "highlight-section": {
+              "type": "highlight",
+              "title": "What the Neuro Change Method™ Can Do for You",
+              "points": {
+                "toolName1": "6-8 word description of effect",
+                // 5-6 more tool points
+              },
+              "closingStatement": "Motivational closing statement"
+            }
+          }
+        }
+        `;
 
-        // Log the full completion response from OpenAI
-        console.log("=== FULL OPENAI RESPONSE ===");
-        console.log(JSON.stringify(completion, null, 2));
-        
-        const content = completion.choices[0].message.content || '';
-        
-        // Log just the content part (the JSON string)
-        console.log("=== OPENAI RESPONSE CONTENT ===");
-        console.log(content);
-        
-        const reportData = JSON.parse(content);
-        
-        // Log the parsed JSON object
-        console.log("=== PARSED JSON OBJECT ===");
-        console.log(JSON.stringify(reportData, null, 2));
+        // Practitioner-specific user prompt
+        const practitionerUserPrompt = `
+        ${userInput}
 
-        // Simple validation to ensure expected structure exists
-        if (reportData.clientReport && !reportData.clientReport['highlight-section']) {
-            // Create a default highlight section if missing
-            reportData.clientReport['highlight-section'] = {
-                "type": "highlight",
-                "title": "What the Neuro Change Method™ Can Do for You",
-                "points": {},
-                "closingStatement": "Your journey begins now."
-            };
+        Return a JSON object with this structure:
+        {
+          "practitionerReport": {
+            "sections": [
+              {
+                "type": "section",
+                "title": "Client Profile Summary",
+                "content": "Two paragraphs: 1) general overview (100 words) 2) comprehensive overview (200-300 words)",
+                "primaryObjective": "Clear goal statement based on assessment"
+              },
+              {
+                "type": "section",
+                "title": "Key Barriers:",
+                "items": [
+                  "Specific psychological obstacle 1",
+                  // 4-5 more obstacles
+                ]
+              },
+              {
+                "type": "section",
+                "title": "Transformation Theme:",
+                "sub-title": "One-line statement capturing journey essence",
+                "reason": "Paragraph on theme alignment with journey"
+              },
+              {
+                "type": "section",
+                "title": "Neuro Change Method™: Your 4-Phase Transformation Journey",
+                "phases": [
+                  {
+                    "type": "phase",
+                    "title": "Phase 1: Consciousness",
+                    "items": {  
+                      "focus": "Key Word 1 + Key Word 2 + Key Word 3",
+                      "tools": "Tool One | Tool Two | Tool Three",
+                      "goal": "Two line goal showing change from current to future state"
+                    }
+                  }
+                  // 3 more phases (Mindset, Subconscious, Integration)
+                ]
+              }
+            ],
+            "milestones": [
+              {
+                "milestone": "First milestone description",
+                "targetWeek": "Week X-Y",
+                "toolsAndFocus": "Tools and techniques"
+              }
+              // 5 more milestones
+            ],
+            "projectedTransformationOutcomes": [
+              "Specific measurable outcome 1",
+              // 4-5 more outcomes
+            ],
+            "closingStatement": "Motivational closing statement",
+            "practitionerNotes": {
+              "temperament": "Client temperament assessment",
+              "best-practices": [
+                "Best practice 1 for practitioner",
+                // 3-4 more best practices
+              ]
+            }
+          }
         }
 
-        return NextResponse.json({
-            clientContent: reportData.clientReport,
-            practitionerContent: reportData.practitionerReport,
-            firstName
-        });
-    } catch (error) {
-        console.error('Error:', error);
-        return NextResponse.json({ error: 'Failed to generate reports' }, { status: 500 });
+        IMPORTANT FORMATTING REQUIREMENTS:
+        1. For the "focus" field and "tools" field in each phase:
+           - Each key word or phrase MUST be capitalized (e.g., "Self Awareness" not "self-awareness")
+           - Use plus signs WITH spaces between words (e.g., "Self Awareness + Rest + Presence")
+           - Use 2-3 words/phrases maximum
+           - Use pipe symbols WITH spaces between tools (e.g., "Self Concordance Mapping | Belief Engineering")
+        `;
+
+        // Run both API calls concurrently
+        console.log("=== STARTING CONCURRENT API CALLS ===");
+        const startTime = Date.now();
+        
+        try {
+            const [clientContent, practitionerContent] = await Promise.all([
+                callOpenAIWithTimeout(clientSystemPrompt, clientUserPrompt),
+                callOpenAIWithTimeout(practitionerSystemPrompt, practitionerUserPrompt)
+            ]);
+            
+            console.log(`=== API CALLS COMPLETED IN ${(Date.now() - startTime) / 1000}s ===`);
+            
+            // Parse the JSON responses
+            let clientReportData, practitionerReportData;
+            
+            try {
+                clientReportData = JSON.parse(clientContent);
+                console.log("=== CLIENT REPORT PARSED SUCCESSFULLY ===");
+            } catch (error) {
+                console.error("Error parsing client report:", error);
+                clientReportData = { 
+                    clientReport: {
+                        "question-section": [],
+                        "highlight-section": {
+                            "type": "highlight",
+                            "title": "What the Neuro Change Method™ Can Do for You",
+                            "points": {},
+                            "closingStatement": "Your journey begins now."
+                        }
+                    }
+                };
+            }
+            
+            try {
+                practitionerReportData = JSON.parse(practitionerContent);
+                console.log("=== PRACTITIONER REPORT PARSED SUCCESSFULLY ===");
+            } catch (error) {
+                console.error("Error parsing practitioner report:", error);
+                practitionerReportData = { practitionerReport: { sections: [], milestones: [], projectedTransformationOutcomes: [] } };
+            }
+
+            // Validate client report structure
+            if (clientReportData.clientReport && !clientReportData.clientReport['highlight-section']) {
+                clientReportData.clientReport['highlight-section'] = {
+                    "type": "highlight",
+                    "title": "What the Neuro Change Method™ Can Do for You",
+                    "points": {},
+                    "closingStatement": "Your journey begins now."
+                };
+            }
+
+            return NextResponse.json({
+                clientContent: clientReportData.clientReport,
+                practitionerContent: practitionerReportData.practitionerReport,
+                firstName
+            });
+        } catch (error: any) {
+            console.error('API call error:', error.message);
+            return NextResponse.json({ 
+                error: 'We experienced a delay generating your reports. Please try again with shorter responses.' 
+            }, { status: 503 });
+        }
+    } catch (error: any) {
+        console.error('General error:', error.message);
+        return NextResponse.json({ 
+            error: 'Failed to generate reports. Please try again shortly.' 
+        }, { status: 500 });
     }
 }
 
