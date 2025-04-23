@@ -20,6 +20,12 @@ const formSchema = z.object({
     .max(100, 'Email is too long')
     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
 
+  practitionerEmail: z
+    .string()
+    .email('Please enter a valid practitioner email')
+    .max(100, 'Email is too long')
+    .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
+
   ques1: z
     .string()
     .min(15, 'Please provide a more detailed response (at least 15 characters)')
@@ -88,6 +94,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
+  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
   const {
     control,
@@ -101,6 +108,7 @@ export default function Home() {
     defaultValues: {
       firstName: '',
       email: '',
+      practitionerEmail: '',
       ques1: '',
       ques2: '',
       ques3: '',
@@ -125,6 +133,7 @@ export default function Home() {
     setLoading(true);
     setError('');
     setRetryMode(false);
+    setEmailStatus('idle');
 
     try {
       const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
@@ -164,6 +173,44 @@ export default function Home() {
 
       const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
       setPractitionerPdfUrl(practitionerUrl);
+
+      // Send the practitioner report via email if there's a practitioner email
+      if (sanitizedData.practitionerEmail) {
+        try {
+          setEmailStatus('sending');
+          
+          // Convert blob to base64
+          const base64Data = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(practitionerBlob);
+            reader.onloadend = () => {
+              const base64data = reader.result as string;
+              // Remove data URL prefix (e.g., "data:application/pdf;base64,")
+              resolve(base64data.split(',')[1]);
+            };
+          });
+
+          const emailResponse = await fetch('/api/send-practitioner-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              practitionerEmail: sanitizedData.practitionerEmail,
+              firstName: sanitizedData.firstName,
+              pdfBase64: base64Data
+            }),
+          });
+
+          if (emailResponse.ok) {
+            setEmailStatus('success');
+          } else {
+            setEmailStatus('error');
+            console.error('Failed to send practitioner email');
+          }
+        } catch (emailError) {
+          console.error('Email sending error:', emailError);
+          setEmailStatus('error');
+        }
+      }
 
       reset();
 
@@ -272,6 +319,26 @@ export default function Home() {
                 <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
+            <div>
+              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">Practitioner Email</label>
+              <Controller
+                name="practitionerEmail"
+                control={control}
+                render={({ field }) => (
+                  <input
+                    id="practitionerEmail"
+                    type="email"
+                    aria-invalid={errors.practitionerEmail ? "true" : "false"}
+                    aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.practitionerEmail && touchedFields.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    {...field}
+                  />
+                )}
+              />
+              {errors.practitionerEmail && touchedFields.practitionerEmail && (
+                <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
+              )}
+            </div>
           </div>
 
           {/* Questions Inputs for the User */}
@@ -368,6 +435,18 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </a>
+              )}
+              
+              {emailStatus !== 'idle' && (
+                <div className={`mt-2 p-3 rounded-md ${
+                  emailStatus === 'sending' ? 'bg-blue-50 text-blue-600' :
+                  emailStatus === 'success' ? 'bg-green-50 text-green-600' :
+                  'bg-yellow-50 text-yellow-600'
+                }`}>
+                  {emailStatus === 'sending' && 'Sending practitioner report via email...'}
+                  {emailStatus === 'success' && 'Practitioner report successfully sent via email!'}
+                  {emailStatus === 'error' && 'Failed to send practitioner report via email. They can still download it here.'}
+                </div>
               )}
             </div>
           </div>
