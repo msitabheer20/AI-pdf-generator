@@ -102,12 +102,12 @@ export async function POST(request: Request) {
 
         const userPrompt = `
         **User Input:**
-        - First Name: ${firstName}
-        - Email: ${email}
-        - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
-        - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
-        - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
-        - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
+            - First Name: ${firstName}
+            - Email: ${email}
+            - Q1: Where are you right now in your life, emotionally and mentally? ${ques1}
+            - Q2: What is something you deeply want—but haven't yet achieved? ${ques2}
+            - Q3: What recurring thoughts, fears, or beliefs do you find yourself struggling with? ${ques3}
+            - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
         - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
 
             Return a JSON object with the following structure without missing any detail:
@@ -125,8 +125,8 @@ export async function POST(request: Request) {
                   // similarly more objects for the questions 2-5
                 ],
                 "highlight-section": {
-                    "type": "highlight",
-                    "title": "What the Neuro Change Method™ Can Do for You",
+                        "type": "highlight",
+                        "title": "What the Neuro Change Method™ Can Do for You",
                     "points": {
                         item1: "content of item 1",
                         // five to six more such key value points. replace these item1, item2 ... with the tools name. choose the best tools which will help the client for the transformation and the content will contain 5 to 6 words defining the effect of that tool.
@@ -141,7 +141,7 @@ export async function POST(request: Request) {
                     "type": "section",
                     "title": "Client Profile Summary",
                     "content": "replace this with two paragraphs as mentioned below",
-                    // first paragraph in content should contain general overview about the client in 100 words and second para will contain comprehensive overview of client's issues in at least 400 to 500 words.
+                    // first paragraph in content should contain general overview about the client in 100 words and second para will contain comprehensive overview of client's issues in at least 200 to 300 words.
                     "primaryObjective": "Clear goal statement based on assessment in one paragraph"
                   },
                   {
@@ -213,8 +213,21 @@ export async function POST(request: Request) {
             top_p: 0.85
         });
 
+        // Log the full completion response from OpenAI
+        console.log("=== FULL OPENAI RESPONSE ===");
+        console.log(JSON.stringify(completion, null, 2));
+        
         const content = completion.choices[0].message.content || '';
+        
+        // Log just the content part (the JSON string)
+        console.log("=== OPENAI RESPONSE CONTENT ===");
+        console.log(content);
+        
         const reportData = JSON.parse(content);
+        
+        // Log the parsed JSON object
+        console.log("=== PARSED JSON OBJECT ===");
+        console.log(JSON.stringify(reportData, null, 2));
 
         // Simple validation to ensure expected structure exists
         if (reportData.clientReport && !reportData.clientReport['highlight-section']) {
