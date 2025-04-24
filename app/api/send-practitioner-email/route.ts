@@ -16,24 +16,25 @@ export async function POST(request: Request) {
     // Convert base64 to buffer
     const pdfBuffer = Buffer.from(pdfBase64, 'base64');
     
-    // Send email with PDF attachment
-    const emailSent = await sendPractitionerReport(
+    // Return success immediately - email will be sent in the background
+    const response = NextResponse.json({ success: true });
+    
+    // Send email with PDF attachment (no await - runs in background)
+    sendPractitionerReport(
       practitionerEmail,
       firstName,
       pdfBuffer
-    );
+    ).catch(error => {
+      console.error('Background email sending error:', error.message);
+    });
 
-    if (emailSent) {
-      return NextResponse.json({ success: true });
-    } else {
-      throw new Error('Failed to send email');
-    }
+    return response;
   } catch (error: any) {
-    console.error('Email sending error:', error.message);
+    console.error('Email processing error:', error.message);
     
     return NextResponse.json(
-      { error: 'Failed to send email. Please try again.' },
+      { error: 'Failed to process email request. Please try again.' },
       { status: 500 }
     );
   }
-} 
+}

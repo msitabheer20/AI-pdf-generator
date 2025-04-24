@@ -9,70 +9,6 @@ import { questions } from '@/utils/questions';
 import { sanitizeFormData } from '@/utils/validation/sanitize';
 import { AssessmentFormData, assessmentFormSchema } from '@/utils/validation/schema';
 
-// const formSchema = z.object({
-//   firstName: z
-//     .string()
-//     .min(1, 'First name is required')
-//     .max(50, 'First name is too long')
-//     .regex(/^[a-zA-Z\s\-']+$/, 'First name should only contain letters, spaces, hyphens, or apostrophes'),
-
-//   email: z
-//     .string()
-//     .email('Please enter a valid email')
-//     .max(100, 'Email is too long')
-//     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
-
-//   practitionerEmail: z
-//     .string()
-//     .email('Please enter a valid practitioner email')
-//     .max(100, 'Email is too long')
-//     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
-
-//   ques1: z
-//     .string()
-//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
-//     .max(2000, 'Response is too long (maximum 2000 characters)')
-//     .refine(text => text.split(' ').length >= 3, {
-//       message: 'Please provide a meaningful response with at least a few words'
-//     }),
-
-//   ques2: z
-//     .string()
-//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
-//     .max(2000, 'Response is too long (maximum 2000 characters)')
-//     .refine(text => text.split(' ').length >= 3, {
-//       message: 'Please provide a meaningful response with at least a few words'
-//     }),
-
-//   ques3: z
-//     .string()
-//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
-//     .max(2000, 'Response is too long (maximum 2000 characters)')
-//     .refine(text => text.split(' ').length >= 3, {
-//       message: 'Please provide a meaningful response with at least a few words'
-//     }),
-
-//   ques4: z
-//     .string()
-//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
-//     .max(2000, 'Response is too long (maximum 2000 characters)')
-//     .refine(text => text.split(' ').length >= 3, {
-//       message: 'Please provide a meaningful response with at least a few words'
-//     }),
-
-//   ques5: z
-//     .string()
-//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
-//     .max(2000, 'Response is too long (maximum 2000 characters)')
-//     .refine(text => text.split(' ').length >= 3, {
-//       message: 'Please provide a meaningful response with at least a few words'
-//     }),
-// });
-
-// type FormDataWithDuplicateCheck = z.infer<typeof formSchema> & {
-//   duplicateResponses?: string;
-// };
-
 type FormDataWithDuplicateCheck = AssessmentFormData &  {
   duplicateResponses?: string
 }
@@ -93,20 +29,18 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
 
 const practitionerEmails = [
   { value: "", label: "Select a practitioner" },
-  { value: "charlyn.tom2019@gmail.com", label: "Practioner 1" },
+  { value: "ologin486@gmail.com", label: "Practioner 1" },
   { value: "charlyn.tom@icloud.com", label: "Practioner 2" },
 ];
 
 export default function Home() {
-
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [clientPdfUrl, setClientPdfUrl] = useState('');
-  // const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
-  // const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  // const [emailStatus, setEmailStatus] = useState('');
 
   const {
     control,
@@ -132,7 +66,6 @@ export default function Home() {
   useEffect(() => {
     if (showConfirmation) {
       setClientPdfUrl('');
-      // setPractitionerPdfUrl('');
     }
   }, [showConfirmation]);
 
@@ -145,15 +78,9 @@ export default function Home() {
     setLoading(true);
     setError('');
     setRetryMode(false);
-    // setEmailStatus('idle');
+    // setEmailStatus('');
 
     try {
-      // const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
-      //   if (key !== 'duplicateResponses' && typeof value === 'string') {
-      //     acc[key] = DOMPurify.sanitize(value.trim());
-      //   }
-      //   return acc;
-      // }, {} as Record<string, string>);
       const sanitizedData = sanitizeFormData(getValues());
 
       const response = await fetch('/api/generate-reports', {
@@ -163,8 +90,6 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        // const errorData = await response.json();
-        // throw new Error(errorData.error || 'Our servers are having a moment—please try again shortly');
         throw new Error('Our servers are having a moment — please try again shortly');
       }
 
@@ -178,19 +103,22 @@ export default function Home() {
         responses: sanitizedData
       };
 
-      const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
-      const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
-
-      const clientUrl = window.URL.createObjectURL(clientBlob);
-      setClientPdfUrl(clientUrl);
-
-      // const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
-      // setPractitionerPdfUrl(practitionerUrl);
-
-      // Send the practitioner report via email if there's a practitioner email
-      if (sanitizedData.practitionerEmail) {
-        try {
-          // setEmailStatus('sending');
+      try {
+        // Generate client PDF first
+        const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
+        const clientUrl = window.URL.createObjectURL(clientBlob);
+        
+        // Stop loading indicator as soon as client PDF is ready
+        setLoading(false);
+        setGenerating(false);
+        setClientPdfUrl(clientUrl);
+        
+        // Now handle practitioner PDF and email in the background
+        if (sanitizedData.practitionerEmail) {
+          // setEmailStatus('Sending emails in background...');
+          
+          // Generate practitioner PDF
+          const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
           
           // Convert blob to base64
           const base64Data = await new Promise<string>((resolve) => {
@@ -198,12 +126,13 @@ export default function Home() {
             reader.readAsDataURL(practitionerBlob);
             reader.onloadend = () => {
               const base64data = reader.result as string;
-              // Remove data URL prefix (e.g., "data:application/pdf;base64,")
+              // Remove data URL prefix
               resolve(base64data.split(',')[1]);
             };
           });
-
-          const emailResponse = await fetch('/api/send-practitioner-email', {
+          
+          // Send practitioner email in background
+          fetch('/api/send-practitioner-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -211,28 +140,34 @@ export default function Home() {
               firstName: sanitizedData.firstName,
               pdfBase64: base64Data
             }),
+          }).then(emailResponse => {
+            if (emailResponse.ok) {
+              console.log("Email sent successfully in background");
+              // setEmailStatus('');
+            } else {
+              console.error('Background email sending failed');
+              // Don't show error to user since client PDF was generated successfully
+            }
+          }).catch(err => {
+            console.error('Background email error:', err);
+            // Don't show error to user since client PDF was generated successfully
           });
-
-          if (emailResponse.ok) {
-            console.log("Email sent ...")
-            // setEmailStatus('success');
-          } else {
-            // setEmailStatus('error');
-            console.error('Failed to send practitioner email');
-          }
-        } catch (emailError) {
-          console.error('Email sending error:', emailError);
-          // setEmailStatus('error');
         }
+        
+        reset();
+        
+      } catch (pdfError) {
+        console.error('PDF generation error:', pdfError);
+        setError('Error generating PDFs. Please try again.');
+        setRetryMode(true);
+        setLoading(false);
+        setGenerating(false);
       }
-
-      reset();
 
     } catch (err) {
       console.error('Error:', err);
       setError('Whoops! Something went wrong — please try again in a moment');
       setRetryMode(true);
-    } finally {
       setLoading(false);
       setGenerating(false);
     }
@@ -254,7 +189,6 @@ export default function Home() {
   useEffect(() => {
     return () => {
       if (clientPdfUrl) window.URL.revokeObjectURL(clientPdfUrl);
-      // if (practitionerPdfUrl) window.URL.revokeObjectURL(practitionerPdfUrl);
     };
   }, [clientPdfUrl]);
 
@@ -363,31 +297,6 @@ export default function Home() {
                 <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
               )}
             </div>
-
-            {/* <div className="md:col-span-2">
-              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
-                Practitioner Email
-              </label>
-              <Controller
-                name="practitionerEmail"
-                control={control}
-                render={({ field }) => (
-                  <input
-                    id="practitionerEmail"
-                    type="email"
-                    placeholder="Your practitioner's email"
-                    aria-invalid={errors.practitionerEmail ? "true" : "false"}
-                    aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.practitionerEmail && touchedFields.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
-                    {...field}
-                  />
-                )}
-              />
-              {errors.practitionerEmail && touchedFields.practitionerEmail && (
-                <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
-              )}
-            </div> */}
-
           </div>
 
           {/* Questions Inputs for the User */}
@@ -434,6 +343,12 @@ export default function Home() {
             </div>
           )}
 
+          {/* {emailStatus && (
+            <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
+              <p>{emailStatus}</p>
+            </div>
+          )} */}
+
           <button
             type="submit"
             disabled={loading || generating || (!retryMode && !isValid)}
@@ -453,30 +368,28 @@ export default function Home() {
           </button>
         </form>
 
-        {(clientPdfUrl) && (
+        {clientPdfUrl && (
           <div className="mt-6 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
-            <h2 className="text-lg font-medium text-gray-700">Your Assessment Reports</h2>
-            <p className="text-sm text-gray-500">Your personalized reports have been generated and are ready for download.</p>
+            <h2 className="text-lg font-medium text-gray-700">Your Assessment Report</h2>
+            <p className="text-sm text-gray-500">Your personalized report has been generated and is ready for download.</p>
 
             <div className="space-y-2">
-              {clientPdfUrl && (
-                <a
-                  href={clientPdfUrl}
-                  download={`Client_Assessment_${getValues().firstName || 'Report'}.pdf`}
-                  className="flex items-center justify-between px-4 py-3 bg-white text-blue-500 rounded-md border border-blue-100 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
-                  aria-label="Download Client Assessment Report PDF"
-                >
-                  <span className="font-medium">Client Assessment Report</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </a>
-              )}
+              <a
+                href={clientPdfUrl}
+                download={`Client_Assessment_${getValues().firstName || 'Report'}.pdf`}
+                className="flex items-center justify-between px-4 py-3 bg-white text-blue-500 rounded-md border border-blue-100 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
+                aria-label="Download Client Assessment Report PDF"
+              >
+                <span className="font-medium">Client Assessment Report</span>
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </a>
             </div>
           </div>
         )}
 
-        {/* Confirmation Modal with dimmer background */}
+        {/* Confirmation Modal */}
         {showConfirmation && (
           <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
