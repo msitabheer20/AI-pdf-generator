@@ -90,11 +90,11 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [clientPdfUrl, setClientPdfUrl] = useState('');
-  const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
+  // const [practitionerPdfUrl, setPractitionerPdfUrl] = useState('');
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
-  const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  // const [emailStatus, setEmailStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
 
   const {
     control,
@@ -120,7 +120,7 @@ export default function Home() {
   useEffect(() => {
     if (showConfirmation) {
       setClientPdfUrl('');
-      setPractitionerPdfUrl('');
+      // setPractitionerPdfUrl('');
     }
   }, [showConfirmation]);
 
@@ -133,7 +133,7 @@ export default function Home() {
     setLoading(true);
     setError('');
     setRetryMode(false);
-    setEmailStatus('idle');
+    // setEmailStatus('idle');
 
     try {
       const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
@@ -150,7 +150,7 @@ export default function Home() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        // const errorData = await response.json();
         // throw new Error(errorData.error || 'Our servers are having a moment—please try again shortly');
         throw new Error('Our servers are having a moment — please try again shortly');
       }
@@ -171,13 +171,13 @@ export default function Home() {
       const clientUrl = window.URL.createObjectURL(clientBlob);
       setClientPdfUrl(clientUrl);
 
-      const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
-      setPractitionerPdfUrl(practitionerUrl);
+      // const practitionerUrl = window.URL.createObjectURL(practitionerBlob);
+      // setPractitionerPdfUrl(practitionerUrl);
 
       // Send the practitioner report via email if there's a practitioner email
       if (sanitizedData.practitionerEmail) {
         try {
-          setEmailStatus('sending');
+          // setEmailStatus('sending');
           
           // Convert blob to base64
           const base64Data = await new Promise<string>((resolve) => {
@@ -201,14 +201,15 @@ export default function Home() {
           });
 
           if (emailResponse.ok) {
-            setEmailStatus('success');
+            console.log("Email sent ...")
+            // setEmailStatus('success');
           } else {
-            setEmailStatus('error');
+            // setEmailStatus('error');
             console.error('Failed to send practitioner email');
           }
         } catch (emailError) {
           console.error('Email sending error:', emailError);
-          setEmailStatus('error');
+          // setEmailStatus('error');
         }
       }
 
@@ -240,9 +241,9 @@ export default function Home() {
   useEffect(() => {
     return () => {
       if (clientPdfUrl) window.URL.revokeObjectURL(clientPdfUrl);
-      if (practitionerPdfUrl) window.URL.revokeObjectURL(practitionerPdfUrl);
+      // if (practitionerPdfUrl) window.URL.revokeObjectURL(practitionerPdfUrl);
     };
-  }, [clientPdfUrl, practitionerPdfUrl]);
+  }, [clientPdfUrl]);
 
   const getButtonText = () => {
     if (loading) return 'Processing Responses...';
@@ -403,7 +404,7 @@ export default function Home() {
           </button>
         </form>
 
-        {(clientPdfUrl || practitionerPdfUrl) && (
+        {(clientPdfUrl) && (
           <div className="mt-6 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
             <h2 className="text-lg font-medium text-gray-700">Your Assessment Reports</h2>
             <p className="text-sm text-gray-500">Your personalized reports have been generated and are ready for download.</p>
@@ -423,7 +424,7 @@ export default function Home() {
                 </a>
               )}
 
-              {practitionerPdfUrl && (
+              {/* {practitionerPdfUrl && (
                 <a
                   href={practitionerPdfUrl}
                   download={`Practitioner_Report_${getValues().firstName || 'Report'}.pdf`}
@@ -435,9 +436,9 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                 </a>
-              )}
+              )} */}
               
-              {emailStatus !== 'idle' && (
+              {/* {emailStatus !== 'idle' && (
                 <div className={`mt-2 p-3 rounded-md ${
                   emailStatus === 'sending' ? 'bg-blue-50 text-blue-600' :
                   emailStatus === 'success' ? 'bg-green-50 text-green-600' :
@@ -447,7 +448,7 @@ export default function Home() {
                   {emailStatus === 'success' && 'Practitioner report successfully sent via email!'}
                   {emailStatus === 'error' && 'Failed to send practitioner report via email. They can still download it here.'}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         )}

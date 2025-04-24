@@ -71,7 +71,7 @@ const requestSchema = z.object({
         }),
 });
 
-function sanitizeFormData(data: any) {
+function sanitizeFormData(data: Record<string, unknown>) {
     const sanitized: Record<string, string> = {};
 
     for (const [key, value] of Object.entries(data)) {
