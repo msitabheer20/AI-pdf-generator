@@ -289,6 +289,7 @@ export default function Home() {
                   <input
                     id="firstName"
                     type="text"
+                    placeholder="Your first name"
                     aria-invalid={errors.firstName ? "true" : "false"}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
                     className={`mt-1 block w-full p-2 border ${errors.firstName && touchedFields.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
@@ -309,6 +310,7 @@ export default function Home() {
                   <input
                     id="email"
                     type="email"
+                    placeholder="Your email address"
                     aria-invalid={errors.email ? "true" : "false"}
                     aria-describedby={errors.email ? "email-error" : undefined}
                     className={`mt-1 block w-full p-2 border ${errors.email && touchedFields.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
@@ -320,8 +322,10 @@ export default function Home() {
                 <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
-            <div>
-              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">Practitioner Email</label>
+            <div className="md:col-span-2">
+              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
+                Practitioner Email
+              </label>
               <Controller
                 name="practitionerEmail"
                 control={control}
@@ -329,6 +333,7 @@ export default function Home() {
                   <input
                     id="practitionerEmail"
                     type="email"
+                    placeholder="Your practitioner's email"
                     aria-invalid={errors.practitionerEmail ? "true" : "false"}
                     aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
                     className={`mt-1 block w-full p-2 border ${errors.practitionerEmail && touchedFields.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
@@ -359,6 +364,7 @@ export default function Home() {
                   render={({ field }) => (
                     <textarea
                       id={fieldName}
+                      placeholder="Your response..."
                       aria-invalid={hasError ? "true" : "false"}
                       aria-describedby={hasError ? `${fieldName}-error` : undefined}
                       className={`mt-1 block w-full p-2 border ${hasError && isTouched ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
