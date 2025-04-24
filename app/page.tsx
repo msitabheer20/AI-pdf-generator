@@ -91,6 +91,12 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
   }
 });
 
+const practitionerEmails = [
+  { value: "", label: "Select a practitioner" },
+  { value: "charlyn.tom2019@gmail.com", label: "Practioner 1" },
+  { value: "charlyn.tom@icloud.com", label: "Practioner 2" },
+];
+
 export default function Home() {
 
   const [loading, setLoading] = useState(false);
@@ -329,7 +335,36 @@ export default function Home() {
                 <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
+
             <div className="md:col-span-2">
+              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
+                Practitioner Email
+              </label>
+              <Controller
+                name="practitionerEmail"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    id="practitionerEmail"
+                    aria-invalid={errors.practitionerEmail ? "true" : "false"}
+                    aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
+                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail && touchedFields.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    {...field}
+                  >
+                    {practitionerEmails.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
+              {errors.practitionerEmail && touchedFields.practitionerEmail && (
+                <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
+              )}
+            </div>
+
+            {/* <div className="md:col-span-2">
               <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
                 Practitioner Email
               </label>
@@ -351,7 +386,8 @@ export default function Home() {
               {errors.practitionerEmail && touchedFields.practitionerEmail && (
                 <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
               )}
-            </div>
+            </div> */}
+
           </div>
 
           {/* Questions Inputs for the User */}

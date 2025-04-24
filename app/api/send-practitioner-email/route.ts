@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { sendPractitionerReport } from '@/utils/services/emailService';
 
+
 export async function POST(request: Request) {
   try {
     const { practitionerEmail, firstName, pdfBase64 } = await request.json();
