@@ -6,72 +6,78 @@ import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { generateClientPDF, generatePractitionerPDF } from '@/utils/structuredPdfUtils';
 import { questions } from '@/utils/questions';
+import { sanitizeFormData } from '@/utils/validation/sanitize';
+import { AssessmentFormData, assessmentFormSchema } from '@/utils/validation/schema';
 
-const formSchema = z.object({
-  firstName: z
-    .string()
-    .min(1, 'First name is required')
-    .max(50, 'First name is too long')
-    .regex(/^[a-zA-Z\s\-']+$/, 'First name should only contain letters, spaces, hyphens, or apostrophes'),
+// const formSchema = z.object({
+//   firstName: z
+//     .string()
+//     .min(1, 'First name is required')
+//     .max(50, 'First name is too long')
+//     .regex(/^[a-zA-Z\s\-']+$/, 'First name should only contain letters, spaces, hyphens, or apostrophes'),
 
-  email: z
-    .string()
-    .email('Please enter a valid email')
-    .max(100, 'Email is too long')
-    .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
+//   email: z
+//     .string()
+//     .email('Please enter a valid email')
+//     .max(100, 'Email is too long')
+//     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
 
-  practitionerEmail: z
-    .string()
-    .email('Please enter a valid practitioner email')
-    .max(100, 'Email is too long')
-    .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
+//   practitionerEmail: z
+//     .string()
+//     .email('Please enter a valid practitioner email')
+//     .max(100, 'Email is too long')
+//     .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
 
-  ques1: z
-    .string()
-    .min(15, 'Please provide a more detailed response (at least 15 characters)')
-    .max(2000, 'Response is too long (maximum 2000 characters)')
-    .refine(text => text.split(' ').length >= 3, {
-      message: 'Please provide a meaningful response with at least a few words'
-    }),
+//   ques1: z
+//     .string()
+//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
+//     .max(2000, 'Response is too long (maximum 2000 characters)')
+//     .refine(text => text.split(' ').length >= 3, {
+//       message: 'Please provide a meaningful response with at least a few words'
+//     }),
 
-  ques2: z
-    .string()
-    .min(15, 'Please provide a more detailed response (at least 15 characters)')
-    .max(2000, 'Response is too long (maximum 2000 characters)')
-    .refine(text => text.split(' ').length >= 3, {
-      message: 'Please provide a meaningful response with at least a few words'
-    }),
+//   ques2: z
+//     .string()
+//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
+//     .max(2000, 'Response is too long (maximum 2000 characters)')
+//     .refine(text => text.split(' ').length >= 3, {
+//       message: 'Please provide a meaningful response with at least a few words'
+//     }),
 
-  ques3: z
-    .string()
-    .min(15, 'Please provide a more detailed response (at least 15 characters)')
-    .max(2000, 'Response is too long (maximum 2000 characters)')
-    .refine(text => text.split(' ').length >= 3, {
-      message: 'Please provide a meaningful response with at least a few words'
-    }),
+//   ques3: z
+//     .string()
+//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
+//     .max(2000, 'Response is too long (maximum 2000 characters)')
+//     .refine(text => text.split(' ').length >= 3, {
+//       message: 'Please provide a meaningful response with at least a few words'
+//     }),
 
-  ques4: z
-    .string()
-    .min(15, 'Please provide a more detailed response (at least 15 characters)')
-    .max(2000, 'Response is too long (maximum 2000 characters)')
-    .refine(text => text.split(' ').length >= 3, {
-      message: 'Please provide a meaningful response with at least a few words'
-    }),
+//   ques4: z
+//     .string()
+//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
+//     .max(2000, 'Response is too long (maximum 2000 characters)')
+//     .refine(text => text.split(' ').length >= 3, {
+//       message: 'Please provide a meaningful response with at least a few words'
+//     }),
 
-  ques5: z
-    .string()
-    .min(15, 'Please provide a more detailed response (at least 15 characters)')
-    .max(2000, 'Response is too long (maximum 2000 characters)')
-    .refine(text => text.split(' ').length >= 3, {
-      message: 'Please provide a meaningful response with at least a few words'
-    }),
-});
+//   ques5: z
+//     .string()
+//     .min(15, 'Please provide a more detailed response (at least 15 characters)')
+//     .max(2000, 'Response is too long (maximum 2000 characters)')
+//     .refine(text => text.split(' ').length >= 3, {
+//       message: 'Please provide a meaningful response with at least a few words'
+//     }),
+// });
 
-type FormDataWithDuplicateCheck = z.infer<typeof formSchema> & {
-  duplicateResponses?: string;
-};
+// type FormDataWithDuplicateCheck = z.infer<typeof formSchema> & {
+//   duplicateResponses?: string;
+// };
 
-const formSchemaWithDuplicateCheck = formSchema.superRefine((data, ctx) => {
+type FormDataWithDuplicateCheck = AssessmentFormData &  {
+  duplicateResponses?: string
+}
+
+const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx) => {
   const responses = [data.ques1, data.ques2, data.ques3, data.ques4, data.ques5];
   const trimmedResponses = responses.map(response => response.trim().toLowerCase());
   const uniqueResponses = new Set(trimmedResponses);
@@ -136,12 +142,13 @@ export default function Home() {
     // setEmailStatus('idle');
 
     try {
-      const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
-        if (key !== 'duplicateResponses' && typeof value === 'string') {
-          acc[key] = DOMPurify.sanitize(value.trim());
-        }
-        return acc;
-      }, {} as Record<string, string>);
+      // const sanitizedData = Object.entries(getValues()).reduce((acc, [key, value]) => {
+      //   if (key !== 'duplicateResponses' && typeof value === 'string') {
+      //     acc[key] = DOMPurify.sanitize(value.trim());
+      //   }
+      //   return acc;
+      // }, {} as Record<string, string>);
+      const sanitizedData = sanitizeFormData(getValues());
 
       const response = await fetch('/api/generate-reports', {
         method: 'POST',
@@ -429,32 +436,6 @@ export default function Home() {
                   </svg>
                 </a>
               )}
-
-              {/* {practitionerPdfUrl && (
-                <a
-                  href={practitionerPdfUrl}
-                  download={`Practitioner_Report_${getValues().firstName || 'Report'}.pdf`}
-                  className="flex items-center justify-between px-4 py-3 bg-white text-purple-500 rounded-md border border-purple-100 hover:bg-purple-50 hover:text-purple-700 transition-colors duration-200"
-                  aria-label="Download Practitioner Case Report PDF"
-                >
-                  <span className="font-medium">Practitioner Case Report</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                  </svg>
-                </a>
-              )} */}
-              
-              {/* {emailStatus !== 'idle' && (
-                <div className={`mt-2 p-3 rounded-md ${
-                  emailStatus === 'sending' ? 'bg-blue-50 text-blue-600' :
-                  emailStatus === 'success' ? 'bg-green-50 text-green-600' :
-                  'bg-yellow-50 text-yellow-600'
-                }`}>
-                  {emailStatus === 'sending' && 'Sending practitioner report via email...'}
-                  {emailStatus === 'success' && 'Practitioner report successfully sent via email!'}
-                  {emailStatus === 'error' && 'Failed to send practitioner report via email. They can still download it here.'}
-                </div>
-              )} */}
             </div>
           </div>
         )}

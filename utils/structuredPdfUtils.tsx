@@ -1,14 +1,6 @@
 import { Document, Page, Text, View, StyleSheet, Image, pdf, Font } from '@react-pdf/renderer';
 import React from 'react';
 
-// Emoji source no longer needed as we're using SVG icons instead
-// Font.registerEmojiSource({
-//   format: 'png',
-//   url: 'https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/',
-//   withVariationSelectors: true,
-// });
-
-// Image Components that replace SVG icons
 const BulbIcon = () => (
   <Image src="/assets/bulb.png" style={{ width: 16, height: 16 }} />
 );
@@ -21,22 +13,18 @@ const CalendarIcon = () => (
   <Image src="/assets/calendar.png" style={{ width: 14, height: 14 }} />
 );
 
-// Brain icon for phase sections
 const BrainIcon = () => (
   <Image src="/assets/brain.png" style={{ width: 18, height: 18 }} />
 );
 
-// Compass icon for practitioner report header
 const CompassIcon = () => (
   <Image src="/assets/compass.png" style={{ width: 18, height: 18 }} />
 );
 
-// Pencil icon for practitioner notes
 const PencilIcon = () => (
   <Image src="/assets/pencil.png" style={{ width: 16, height: 16 }} />
 );
 
-// Improved styles with better structure
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -91,7 +79,6 @@ const styles = StyleSheet.create({
   reportTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    // marginBottom: 5,
     color: '#000000',
   },
   subtitle: {
@@ -131,7 +118,6 @@ const styles = StyleSheet.create({
   },
   normalText: {
     fontSize: 12,
-    // lineHeight: 1.6,
     marginBottom: 10,
     color: '#000000',
   },
@@ -160,7 +146,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   highlightBox: {
-    // backgroundColor: '#f0f7ff',
     padding: 10,
     borderRadius: 5,
     marginVertical: 10,
@@ -230,7 +215,6 @@ const styles = StyleSheet.create({
   titleContainer: {
     marginBottom: 20,
     paddingBottom: 5,
-    // borderBottom: '1px solid #EEEEEE',
   },
   sectionSeparator: {
     borderBottom: '1px solid #7d7c7c',
@@ -292,48 +276,13 @@ const cleanText = (text: string): string => {
     });
 };
 
-// Section separator component
 const SectionSeparator = () => (
   <View style={styles.sectionSeparator} />
 );
 
-// Page break component to force content to start on a new page
 const PageBreak = () => (
   <View break />
 );
-
-// Types for structured data
-// type ContentType =
-//   | 'section'
-//   | 'question'
-//   | 'subsection'
-//   | 'bullet'
-//   | 'highlight'
-//   | 'phase'
-//   | 'normal'
-//   | 'clientResponse'
-//   | 'aiInsight'
-//   | 'closing';
-
-// type ContentSection = {
-//   type: ContentType;
-//   title?: string;
-//   content?: string;
-//   items?: string[];
-//   points?: Record<string, string>;
-// };
-
-// type PhaseItem = {
-//   focus?: string;
-//   tools?: string;
-//   goal?: string;
-// };
-
-// type PhaseSection = {
-//   type: string;
-//   title: string;
-//   items: PhaseItem;
-// };
 
 type MilestoneItem = {
   milestone: string;
@@ -341,7 +290,6 @@ type MilestoneItem = {
   toolsAndFocus: string;
 };
 
-// Type definitions
 type QuestionData = {
   title: string;
   clientResponse: string;
@@ -367,7 +315,7 @@ type PhaseData = {
 };
 
 type SectionData = {
-  type: string;  // 'section' | 'highlight' | 'phase' | string;
+  type: string;
   title: string;
   content?: string;
   items?: string[];
