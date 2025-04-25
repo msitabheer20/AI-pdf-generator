@@ -8,6 +8,7 @@ import { generateClientPDF, generatePractitionerPDF } from '@/utils/structuredPd
 import { questions } from '@/utils/questions';
 import { sanitizeFormData } from '@/utils/validation/sanitize';
 import { AssessmentFormData, assessmentFormSchema } from '@/utils/validation/schema';
+import Image from 'next/image';
 
 type FormDataWithDuplicateCheck = AssessmentFormData &  {
   duplicateResponses?: string
@@ -40,17 +41,17 @@ export default function Home() {
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
-  // const [emailStatus, setEmailStatus] = useState('');
 
   const {
     control,
     handleSubmit: hookFormSubmit,
-    formState: { errors, isValid, touchedFields },
+    formState: { errors, isValid },
     getValues,
     reset
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
-    mode: 'onBlur',
+    mode: 'onSubmit',
+    reValidateMode: 'onChange', // Changed to 'onChange' for dynamic error clearing after submission
     defaultValues: {
       firstName: '',
       email: '',
@@ -78,7 +79,6 @@ export default function Home() {
     setLoading(true);
     setError('');
     setRetryMode(false);
-    // setEmailStatus('');
 
     try {
       const sanitizedData = sanitizeFormData(getValues());
@@ -97,60 +97,57 @@ export default function Home() {
 
       setGenerating(true);
 
-      // Pass the frontend questions and responses directly to the PDF generator
       const frontendResponses = {
         questions: [...questions] as string[],
         responses: sanitizedData
       };
 
       try {
-        // Generate client PDF first
         const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
         const clientUrl = window.URL.createObjectURL(clientBlob);
         
-        // Stop loading indicator as soon as client PDF is ready
         setLoading(false);
         setGenerating(false);
         setClientPdfUrl(clientUrl);
         
-        // Now handle practitioner PDF and email in the background
         if (sanitizedData.practitionerEmail) {
-          // setEmailStatus('Sending emails in background...');
-          
-          // Generate practitioner PDF
           const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
           
-          // Convert blob to base64
-          const base64Data = await new Promise<string>((resolve) => {
+          const practitionerBase64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(practitionerBlob);
             reader.onloadend = () => {
               const base64data = reader.result as string;
-              // Remove data URL prefix
               resolve(base64data.split(',')[1]);
             };
           });
           
-          // Send practitioner email in background
+          const clientBase64 = await new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(clientBlob);
+            reader.onloadend = () => {
+              const base64data = reader.result as string;
+              resolve(base64data.split(',')[1]);
+            };
+          });
+          
           fetch('/api/send-practitioner-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               practitionerEmail: sanitizedData.practitionerEmail,
               firstName: sanitizedData.firstName,
-              pdfBase64: base64Data
+              practitionerPdfBase64: practitionerBase64,
+              clientPdfBase64: clientBase64
             }),
           }).then(emailResponse => {
             if (emailResponse.ok) {
               console.log("Email sent successfully in background");
-              // setEmailStatus('');
             } else {
               console.error('Background email sending failed');
-              // Don't show error to user since client PDF was generated successfully
             }
           }).catch(err => {
             console.error('Background email error:', err);
-            // Don't show error to user since client PDF was generated successfully
           });
         }
         
@@ -205,8 +202,8 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="flex items-center justify-center mb-6">
-          <div className="w-12 h-12 mr-3">
-            <svg viewBox="0 0 200 200" className="w-full h-full">
+          <div className="w-25 h-25 mr-3 relative">
+            {/* <svg viewBox="0 0 200 200" className="w-full h-full">
               <defs>
                 <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
                   <stop offset="0%" style={{ stopColor: "#6633CC", stopOpacity: 1 }} />
@@ -217,7 +214,13 @@ export default function Home() {
               <path d="M100,40 C115,50 130,60 130,80 C130,100 115,110 100,120 C85,110 70,100 70,80 C70,60 85,50 100,40" fill="white" />
               <circle cx="100" cy="100" r="15" fill="white" />
               <path d="M70,120 C85,130 115,130 130,120" stroke="white" strokeWidth="4" fill="none" />
-            </svg>
+            </svg> */}
+            <Image 
+              src="/nci-logo.png"
+              alt=''
+              fill
+              objectFit='contain'
+            />
           </div>
           <div>
             <h1 className="text-2xl font-bold text-gray-800">DreamScape AI Assessment</h1>
@@ -239,12 +242,12 @@ export default function Home() {
                     placeholder="Your first name"
                     aria-invalid={errors.firstName ? "true" : "false"}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.firstName && touchedFields.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   />
                 )}
               />
-              {errors.firstName && touchedFields.firstName && (
+              {errors.firstName && (
                 <p id="firstName-error" className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>
               )}
             </div>
@@ -260,12 +263,12 @@ export default function Home() {
                     placeholder="Your email address"
                     aria-invalid={errors.email ? "true" : "false"}
                     aria-describedby={errors.email ? "email-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.email && touchedFields.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   />
                 )}
               />
-              {errors.email && touchedFields.email && (
+              {errors.email && (
                 <p id="email-error" className="mt-1 text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
@@ -282,7 +285,7 @@ export default function Home() {
                     id="practitionerEmail"
                     aria-invalid={errors.practitionerEmail ? "true" : "false"}
                     aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
-                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail && touchedFields.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   >
                     {practitionerEmails.map((option) => (
@@ -293,17 +296,15 @@ export default function Home() {
                   </select>
                 )}
               />
-              {errors.practitionerEmail && touchedFields.practitionerEmail && (
+              {errors.practitionerEmail && (
                 <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
               )}
             </div>
           </div>
 
-          {/* Questions Inputs for the User */}
           {questions.map((question, index) => {
             const fieldName = `ques${index + 1}` as keyof FormDataWithDuplicateCheck;
             const hasError = !!errors[fieldName];
-            const isTouched = !!touchedFields[fieldName];
 
             return (
               <div key={index}>
@@ -319,12 +320,12 @@ export default function Home() {
                       placeholder="Your response..."
                       aria-invalid={hasError ? "true" : "false"}
                       aria-describedby={hasError ? `${fieldName}-error` : undefined}
-                      className={`mt-1 block w-full p-2 border ${hasError && isTouched ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
+                      className={`mt-1 block w-full p-2 border ${hasError ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 resize-none h-24 overflow-y-auto`}
                       {...field}
                     />
                   )}
                 />
-                {hasError && isTouched && (
+                {hasError && (
                   <p id={`${fieldName}-error`} className="mt-1 text-sm text-red-500">{errors[fieldName]?.message as string}</p>
                 )}
               </div>
@@ -343,15 +344,10 @@ export default function Home() {
             </div>
           )}
 
-          {/* {emailStatus && (
-            <div className="mt-2 p-2 bg-blue-50 text-blue-700 rounded-md text-sm">
-              <p>{emailStatus}</p>
-            </div>
-          )} */}
-
           <button
             type="submit"
-            disabled={loading || generating || (!retryMode && !isValid)}
+            // disabled={loading || generating || (!retryMode && !isValid)}
+            disabled={loading || generating}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 rounded-md hover:from-purple-700 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-300 transition-all duration-200 font-medium"
           >
             {(loading || generating) ? (
@@ -389,7 +385,6 @@ export default function Home() {
           </div>
         )}
 
-        {/* Confirmation Modal */}
         {showConfirmation && (
           <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">

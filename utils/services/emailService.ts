@@ -54,38 +54,90 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
 
 const DEFAULT_ADMIN_EMAIL = process.env.DEFAULT_ADMIN_EMAIL || 'admin@dreamscapeai.com';
 
-// export const sendPractitionerReport = async (
-//   practitionerEmail: string, 
-//   clientName: string,
-//   pdfBuffer: Buffer
-// ): Promise<boolean> => {
-//   const options: EmailOptions = {
-//     to: practitionerEmail,
-//     subject: `Neuro Change Method™ - Practitioner Report for ${clientName}`,
-//     text: `Dear Practitioner,\n\nAttached is the practitioner report for ${clientName} generated using the Neuro Change Method™.\n\nBest regards,\nDreamScape AI Team`,
-//     html: `
-//       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-//         <h2 style="color: #6633CC;">Neuro Change Method™ - Practitioner Report</h2>
-//         <p>Dear Practitioner,</p>
-//         <p>Attached is the practitioner report for <strong>${clientName}</strong> generated using the Neuro Change Method™.</p>
-//         <p>This report contains a comprehensive analysis of the client's responses and recommendations for their transformation journey.</p>
-//         <p style="margin-top: 20px;">Best regards,</p>
-//         <p><strong>DreamScape AI Team</strong></p>
-//       </div>
-//     `,
-//     attachments: [
-//       {
-//         filename: `Practitioner_Report_${clientName}.pdf`,
-//         content: pdfBuffer,
-//         contentType: 'application/pdf',
-//       },
-//     ],
-//   };
+export const sendClientAndPractitionerReports = async (
+  practitionerEmail: string, 
+  clientName: string, 
+  practitionerPdfBuffer: Buffer,
+  clientPdfBuffer: Buffer
+): Promise<boolean> => {
+  let success = true;
+  
+  // Only send to practitioner if an email is provided
+  if (practitionerEmail) {
+    const options: EmailOptions = {
+      to: practitionerEmail,
+      subject: `Neuro Change Method™ - Reports for ${clientName}`,
+      text: `Dear Practitioner,\n\nAttached are both the practitioner and client reports for ${clientName} generated using the Neuro Change Method™.\n\nBest regards,\nDreamScape AI Team`,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #6633CC;">Neuro Change Method™ - Client & Practitioner Reports</h2>
+          <p>Dear Practitioner,</p>
+          <p>Attached are both the practitioner and client reports for <strong>${clientName}</strong> generated using the Neuro Change Method™.</p>
+          <p>These reports contain a comprehensive analysis of the client's responses and recommendations for their transformation journey.</p>
+          <p style="margin-top: 20px;">Best regards,</p>
+          <p><strong>DreamScape AI Team</strong></p>
+        </div>
+      `,
+      attachments: [
+        {
+          filename: `Practitioner_Report_${clientName}.pdf`,
+          content: practitionerPdfBuffer,
+          contentType: 'application/pdf',
+        },
+        {
+          filename: `Client_Report_${clientName}.pdf`,
+          content: clientPdfBuffer,
+          contentType: 'application/pdf',
+        }
+      ],
+    };
 
-//   return sendEmail(options);
-// }; 
+    const practitionerEmailSent = await sendEmail(options);
+    if (!practitionerEmailSent) {
+      success = false;
+      console.error(`Failed to send reports to ${practitionerEmail}`);
+    }
+  }
 
+  // Always send a copy to the default admin email
+  const adminOptions: EmailOptions = {
+    to: DEFAULT_ADMIN_EMAIL,
+    subject: `[COPY] Neuro Change Method™ - Reports for ${clientName}`,
+    text: `Admin Copy - Reports\n\nAttached are the practitioner and client reports for ${clientName} generated using the Neuro Change Method™.\n\nSelected practitioner: ${practitionerEmail || 'None'}\n\nBest regards,\nDreamScape AI Team`,
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6633CC;">[ADMIN COPY] Neuro Change Method™ - Reports</h2>
+        <p>This is an admin copy of the reports.</p>
+        <p>Attached are the practitioner and client reports for <strong>${clientName}</strong> generated using the Neuro Change Method™.</p>
+        <p><strong>Selected practitioner:</strong> ${practitionerEmail || 'None'}</p>
+        <p style="margin-top: 20px;">Best regards,</p>
+        <p><strong>DreamScape AI Team</strong></p>
+      </div>
+    `,
+    attachments: [
+      {
+        filename: `Admin_Copy_Practitioner_Report_${clientName}.pdf`,
+        content: practitionerPdfBuffer,
+        contentType: 'application/pdf',
+      },
+      {
+        filename: `Admin_Copy_Client_Report_${clientName}.pdf`,
+        content: clientPdfBuffer,
+        contentType: 'application/pdf',
+      }
+    ],
+  };
 
+  const adminEmailSent = await sendEmail(adminOptions);
+  if (!adminEmailSent) {
+    success = false;
+    console.error(`Failed to send admin copy of reports to ${DEFAULT_ADMIN_EMAIL}`);
+  }
+
+  return success;
+};
+
+// Keep the original function for backward compatibility
 export const sendPractitionerReport = async (
   practitionerEmail: string, 
   clientName: string, 
