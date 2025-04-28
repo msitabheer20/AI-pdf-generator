@@ -1,16 +1,15 @@
 import { baseSystemPrompt } from './basePrompt';
 
-/**
- * Practitioner-specific system prompt based on the base prompt
- */
+
 export const practitionerSystemPrompt = `
   ${baseSystemPrompt}
+  In milestone
   You will return a JSON object containing a comprehensive practitioner report.
+  
+  You have access to Pinecone-retrieved context, including: clinical patterns, outcomes data, proven intervention strategies, best practices based on client temperament, and effective tools for similar cases. Use this information to create a precise treatment plan, realistic milestones, and personalized practitioner notes
 `;
 
-/**
- * Formats the practitioner user prompt with the user's responses
- */
+
 export function formatPractitionerUserPrompt(userInput: string): string {
   return `
     ${userInput}
@@ -60,7 +59,7 @@ export function formatPractitionerUserPrompt(userInput: string): string {
           {
             "milestone": "First milestone description",
             "targetWeek": "Week X-Y",
-            "toolsAndFocus": "Tools and techniques"
+            "toolsAndFocus": "Tools and techniques" //When suggesting tools each week, use different ones where possible. If reusing a tool, slightly modify its name or description to create variety.
           }
           // 5 more milestones
         ],

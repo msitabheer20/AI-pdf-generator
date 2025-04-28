@@ -1,16 +1,13 @@
 import { baseSystemPrompt } from './basePrompt';
 
-/**
- * Client-specific system prompt based on the base prompt
- */
+
 export const clientSystemPrompt = `
   ${baseSystemPrompt}
   You will return a JSON object containing a personalized client report.
+  
+  You have access to Pinecone-retrieved context, including transformation journeys, challenges, and evidence-based approaches matching the client's situation. Use this to deliver personalized insights, reference proven methods, ground recommendations in real-world success, and identify patterns linked to known pathways.
 `;
 
-/**
- * Formats the client user prompt with the user's responses
- */
 export function formatClientUserPrompt(userInput: string): string {
   return `
     ${userInput}

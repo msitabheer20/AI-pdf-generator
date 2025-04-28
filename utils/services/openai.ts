@@ -1,13 +1,21 @@
 import OpenAI from 'openai';
 
-// Create OpenAI instance with timeout configuration
-const openai = new OpenAI({ 
+
+const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     timeout: 60000, // 60 second timeout
     maxRetries: 2 // Limit retries to prevent excessive token usage
 });
 
-// OpenAI call configuration
+export const getEmbedding = async (text: string): Promise<number[]> => {
+    const response = await openai.embeddings.create({
+        model: 'text-embedding-ada-002',
+        input: text,
+    });
+    return response.data[0].embedding;
+};
+
+
 export const OPENAI_CONFIG = {
     model: 'gpt-4o',
     temperature: 0.6,
@@ -16,12 +24,7 @@ export const OPENAI_CONFIG = {
     top_p: 0.85
 };
 
-/**
- * Helper function to handle API call with timeout handling
- * @param systemPrompt The system prompt to guide the AI
- * @param userPrompt The user prompt with content to process
- * @returns The AI-generated content
- */
+
 export async function callOpenAIWithTimeout(systemPrompt: string, userPrompt: string): Promise<string> {
     try {
         const completion = await openai.chat.completions.create({
@@ -31,7 +34,7 @@ export async function callOpenAIWithTimeout(systemPrompt: string, userPrompt: st
                 { role: 'user', content: userPrompt }
             ],
         });
-        
+
         return completion.choices[0].message.content || '';
     } catch (error: any) {
         console.error(`OpenAI API error: ${error.message}`);

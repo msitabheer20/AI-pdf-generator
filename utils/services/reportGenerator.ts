@@ -7,6 +7,7 @@ import {
     formatUserInput
 } from '@/utils/prompts';
 import { AssessmentFormData } from '@/utils/validation/schema';
+import { retrieveContext } from '@/lib/retrieve';
 
 // Fallback client report structure for error cases
 const fallbackClientReport = {
@@ -91,8 +92,67 @@ function validateClientReport(report: any): ClientReport {
 }
 
 /**
- * Generate both client and practitioner reports concurrently
+ * Retrieves contextual data from Pinecone based on user input
  */
+async function retrievePineconeContext(userInput: string): Promise<string> {
+    try {
+        console.log("=== RETRIEVING CONTEXT FROM PINECONE ===");
+        
+        // Extract only the questions and answers part, removing personal info
+        // Find the index of Q1 and extract everything from there
+        const q1Index = userInput.indexOf("Q1:");
+        
+        if (q1Index === -1) {
+            console.log("=== COULD NOT EXTRACT QUESTIONS FROM INPUT ===");
+            // Fallback to using the original approach with truncation
+            const retrievalQuery = userInput.substring(0, 500);
+            const contextData = await retrieveContext(retrievalQuery, 10);
+            
+            if (!contextData || contextData.length === 0) {
+                return "No specific context found for this case.";
+            }
+            
+            const formattedContext = contextData.map((ctx, i) => 
+                `CONTEXT ITEM ${i + 1}:\n${ctx}`
+            ).join('\n\n');
+            
+            return formattedContext;
+        }
+        
+        // Extract text from Q1 onwards (which contains all questions and answers)
+        const questionsOnly = userInput.substring(q1Index);
+        console.log("=== USING ONLY QUESTIONS AND ANSWERS FOR RETRIEVAL ===");
+        
+        // Create a combined query from all questions
+        const questionsText = questionsOnly
+            .replace(/- Q\d: /g, '')  // Remove Q1:, Q2:, etc.
+            .replace(/\s+/g, ' ')     // Normalize whitespace
+            .trim();
+            
+        console.log(`=== QUESTION TEXT LENGTH: ${questionsText.length} CHARS ===`);
+        
+        // Get context data from Pinecone
+        const contextData = await retrieveContext(questionsText, 10);
+        
+        if (!contextData || contextData.length === 0) {
+            console.log("=== NO RELEVANT CONTEXT FOUND IN PINECONE ===");
+            return "No specific context found for this case.";
+        }
+        
+        // Process and format the context data
+        const formattedContext = contextData.map((ctx, i) => 
+            `CONTEXT ITEM ${i + 1}:\n${ctx}`
+        ).join('\n\n');
+        
+        console.log(`=== RETRIEVED ${contextData.length} CONTEXT ITEMS FROM PINECONE ===`);
+        return formattedContext;
+    } catch (error) {
+        console.error("Error retrieving context from Pinecone:", error);
+        return "Error retrieving context data. Proceeding without additional context.";
+    }
+}
+
+
 export async function generateReports(
     formData: AssessmentFormData
 ): Promise<ReportsResult> {
@@ -101,17 +161,35 @@ export async function generateReports(
     // Format the user input for the prompts
     const userInput = formatUserInput(formData);
     
+    // Retrieve relevant context from Pinecone
+    const contextString = await retrievePineconeContext(userInput);
+    
+    // Enhance system prompts with retrieved context
+    const enhancedClientSystemPrompt = `
+        ${clientSystemPrompt}
+        
+        The following context from our knowledge base is relevant to this client:
+        ${contextString}
+    `;
+    
+    const enhancedPractitionerSystemPrompt = `
+        ${practitionerSystemPrompt}
+        
+        The following context from our knowledge base is relevant to this client:
+        ${contextString}
+    `;
+    
     console.log("=== STARTING CONCURRENT API CALLS ===");
     const startTime = Date.now();
     
     // Run client and practitioner report generation concurrently
     const [clientContent, practitionerContent] = await Promise.all([
         callOpenAIWithTimeout(
-            clientSystemPrompt, 
+            enhancedClientSystemPrompt, 
             formatClientUserPrompt(userInput)
         ),
         callOpenAIWithTimeout(
-            practitionerSystemPrompt, 
+            enhancedPractitionerSystemPrompt, 
             formatPractitionerUserPrompt(userInput)
         )
     ]);
@@ -127,7 +205,7 @@ export async function generateReports(
     
     const practitionerReportData = safeJsonParse(
         practitionerContent, 
-        { practitionerReport: fallbackPractitionerReport }, 
+        { practitionerReport: fallbackPractitionerReport },
         "PRACTITIONER REPORT"
     );
     

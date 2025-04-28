@@ -691,7 +691,8 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
         <View style={styles.contentContainer}>
           {/* Header Section */}
           <View style={styles.titleContainer}>
-            <Text style={styles.reportTitle}>Client Assessment Report for {parseTrademarks(firstName)}</Text>
+            {/* <Text style={styles.reportTitle}>Client Assessment Report for {parseTrademarks(firstName)}</Text> */}
+            <Text style={styles.reportTitle}>Neuro Change Method™ Client Assessment Report</Text>
             <Text style={styles.subtitle}>Prepared by DreamScape AI</Text>
             <Text style={styles.openingStatement}>
               {parseTrademarks(firstName)}, what you're about to read isn't just a reflection—it's a revelation. This assessment draws on evidence-based psychological frameworks and cutting-edge insight tools to uncover the hidden architecture of your mindset, motivations, and identity with stunning clarity.
@@ -813,7 +814,7 @@ export const generatePractitionerPDF = async (firstName: string, practitionerRep
           <View style={styles.titleContainer}>
             <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
               <CompassIcon />
-              <Text style={{ ...styles.reportTitle, marginLeft: 4 }}>Practitioner Case Report : {parseTrademarks(firstName)}</Text>
+              <Text style={{ ...styles.reportTitle, marginLeft: 4 }}>Neuro Change Method™ Practitioner Report</Text>
             </View>
           </View>
 

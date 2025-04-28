@@ -41,6 +41,7 @@ export default function Home() {
   const [error, setError] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
+  const [emailError, setEmailError] = useState(false);
 
   const {
     control,
@@ -50,8 +51,8 @@ export default function Home() {
     reset
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
-    mode: 'onSubmit',
-    reValidateMode: 'onChange', // Changed to 'onChange' for dynamic error clearing after submission
+    mode: 'onChange',
+    reValidateMode: 'onChange',
     defaultValues: {
       firstName: '',
       email: '',
@@ -138,16 +139,17 @@ export default function Home() {
               practitionerEmail: sanitizedData.practitionerEmail,
               firstName: sanitizedData.firstName,
               practitionerPdfBase64: practitionerBase64,
-              clientPdfBase64: clientBase64
+              clientPdfBase64: clientBase64,
+              userEmail: sanitizedData.email
             }),
           }).then(emailResponse => {
-            if (emailResponse.ok) {
-              console.log("Email sent successfully in background");
-            } else {
+            if (!emailResponse.ok) {
               console.error('Background email sending failed');
+              setEmailError(true);
             }
           }).catch(err => {
             console.error('Background email error:', err);
+            setEmailError(true);
           });
         }
         
@@ -203,23 +205,13 @@ export default function Home() {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="flex items-center justify-center mb-6">
           <div className="w-25 h-25 mr-3 relative">
-            {/* <svg viewBox="0 0 200 200" className="w-full h-full">
-              <defs>
-                <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" style={{ stopColor: "#6633CC", stopOpacity: 1 }} />
-                  <stop offset="100%" style={{ stopColor: "#0066CC", stopOpacity: 1 }} />
-                </linearGradient>
-              </defs>
-              <circle cx="100" cy="100" r="80" fill="url(#grad1)" />
-              <path d="M100,40 C115,50 130,60 130,80 C130,100 115,110 100,120 C85,110 70,100 70,80 C70,60 85,50 100,40" fill="white" />
-              <circle cx="100" cy="100" r="15" fill="white" />
-              <path d="M70,120 C85,130 115,130 130,120" stroke="white" strokeWidth="4" fill="none" />
-            </svg> */}
             <Image 
               src="/nci-logo.png"
               alt=''
               fill
-              objectFit='contain'
+              style={{ objectFit: 'contain' }}
+              priority
+              sizes='25'
             />
           </div>
           <div>
@@ -231,7 +223,7 @@ export default function Home() {
         <form onSubmit={(e) => { e.preventDefault(); handleButtonClick(); }} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor='firstName' className="block text-sm font-bold text-black">First Name</label>
+              <label htmlFor='firstName' className="block text-sm font-bold text-black">Name <span className="text-red-500">*</span></label>
               <Controller
                 name="firstName"
                 control={control}
@@ -252,7 +244,7 @@ export default function Home() {
               )}
             </div>
             <div>
-              <label htmlFor='email' className="block text-sm font-bold text-black">Email</label>
+              <label htmlFor='email' className="block text-sm font-bold text-black">Email <span className="text-red-500">*</span></label>
               <Controller
                 name="email"
                 control={control}
@@ -275,7 +267,7 @@ export default function Home() {
 
             <div className="md:col-span-2">
               <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
-                Practitioner Email
+                Practitioner Email <span className="text-red-500">*</span>
               </label>
               <Controller
                 name="practitionerEmail"
@@ -309,7 +301,7 @@ export default function Home() {
             return (
               <div key={index}>
                 <label htmlFor={fieldName} className="block text-sm font-bold text-black">
-                  {question}
+                  {question} <span className="text-red-500">*</span>
                 </label>
                 <Controller
                   name={fieldName}
@@ -333,8 +325,20 @@ export default function Home() {
           })}
 
           {hasDuplicateError && (
-            <div className="p-3 bg-yellow-50 text-yellow-700 rounded-md">
+            <div className="p-3 text-[13px] bg-yellow-50 text-yellow-700 rounded-md">
               Please provide unique answers for each question. Some of your responses appear to be identical.
+            </div>
+          )}
+
+          {clientPdfUrl && (
+            <div className="p-3 text-[13px] bg-green-50 text-green-700 rounded-md">
+              Thank you for submitting and for your patience — we appreciate you!
+            </div>
+          )}
+
+          {emailError && clientPdfUrl && (
+            <div className="p-3 text-[13px] bg-red-50 text-red-700 rounded-md">
+              We couldn't send the report to your email. Please download your report below or check your spam folder if you think it went through.
             </div>
           )}
 
@@ -346,7 +350,6 @@ export default function Home() {
 
           <button
             type="submit"
-            // disabled={loading || generating || (!retryMode && !isValid)}
             disabled={loading || generating}
             className="w-full bg-gradient-to-r from-purple-600 to-blue-500 text-white p-3 rounded-md hover:from-purple-700 hover:to-blue-600 disabled:from-gray-400 disabled:to-gray-300 transition-all duration-200 font-medium"
           >
@@ -389,7 +392,7 @@ export default function Home() {
           <div className="fixed inset-0 bg-black/50 bg-opacity-30 flex items-center justify-center z-50">
             <div className="bg-white p-6 rounded-lg shadow-xl max-w-md">
               <h3 className="text-lg font-medium text-gray-900 mb-3">Confirm Submission</h3>
-              <p className="text-gray-600 mb-4">Are you sure you want to submit your assessment? Your responses will be processed to generate personalized reports.</p>
+              <p className="text-gray-600 mb-4">Please review your responses carefully before submitting. They will be processed to generate your personalized reports.</p>
               <div className="flex justify-end space-x-3">
                 <button
                   type="button"

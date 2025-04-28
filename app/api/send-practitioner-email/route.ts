@@ -3,9 +3,9 @@ import { sendClientAndPractitionerReports } from '@/utils/services/emailService'
 
 export async function POST(request: Request) {
   try {
-    const { practitionerEmail, firstName, practitionerPdfBase64, clientPdfBase64 } = await request.json();
+    const { practitionerEmail, firstName, practitionerPdfBase64, clientPdfBase64, userEmail } = await request.json();
     
-    if (!practitionerEmail || !firstName || !practitionerPdfBase64 || !clientPdfBase64) {
+    if (!firstName || !practitionerPdfBase64 || !clientPdfBase64) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
@@ -16,17 +16,18 @@ export async function POST(request: Request) {
     const practitionerPdfBuffer = Buffer.from(practitionerPdfBase64, 'base64');
     const clientPdfBuffer = Buffer.from(clientPdfBase64, 'base64');
     
-    // Return success immediately - email will be sent in the background
-    const response = NextResponse.json({ success: true });
+    // Return success immediately
+    const response = NextResponse.json({ success: true, userEmailSent: true });
     
-    // Send email with PDF attachments (no await - runs in background)
+    // Send email with PDF attachments in the background (no await)
     sendClientAndPractitionerReports(
       practitionerEmail,
       firstName,
       practitionerPdfBuffer,
-      clientPdfBuffer
+      clientPdfBuffer,
+      userEmail
     ).catch(error => {
-      console.error('Background email sending error:', error.message);
+      console.error('Background email sending error:', error);
     });
 
     return response;
