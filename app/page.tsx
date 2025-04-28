@@ -30,20 +30,20 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
 
 const practitionerEmails = [
   { value: "", label: "Select a practitioner" },
-  { value: "afrahalabayaty@gmail.com", label: "Afrah", code: "48329" },
-  { value: "johnnie@johnnielloyd.com", label: "Johnnie Lloyd", code: "17504" },
-  { value: "sophia@sophiabailey.co.uk", label: "Sophia Bailey Larsen", code: "92751" },
-  { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "30486" },
-  { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "68127" },
+  { value: "afrahalabayaty@gmail.com", label: "Afrah", code: "A7kP3" },
+  { value: "johnnie@johnnielloyd.com", label: "Johnnie Lloyd", code: "M2qL8" },
+  { value: "sophia@sophiabailey.co.uk", label: "Sophia Bailey Larsen", code: "R9tB6" },
+  { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "V5nX0" },
+  { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "J8mC7" },
 ];
 
 const practitionerCodes = [
   { value: "", label: "Select Code" },
-  { value: "48329", label: "48329", email: "afrahalabayaty@gmail.com" },
-  { value: "17504", label: "17504", email: "johnnie@johnnielloyd.com" },
-  { value: "92751", label: "92751", email: "sophia@sophiabailey.co.uk" },
-  { value: "30486", label: "30486", email: "charlyn.tom@icloud.com" },
-  { value: "68127", label: "68127", email: "charlyn.tom2019@gmail.com" },
+  { value: "A7kP3", label: "A7kP3", email: "afrahalabayaty@gmail.com" },
+  { value: "M2qL8", label: "M2qL8", email: "johnnie@johnnielloyd.com" },
+  { value: "R9tB6", label: "R9tB6", email: "sophia@sophiabailey.co.uk" },
+  { value: "V5nX0", label: "V5nX0", email: "charlyn.tom@icloud.com" },
+  { value: "J8mC7", label: "J8mC7", email: "charlyn.tom2019@gmail.com" },
 ];
 
 export default function Home() {
