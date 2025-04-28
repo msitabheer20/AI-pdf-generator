@@ -30,8 +30,20 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
 
 const practitionerEmails = [
   { value: "", label: "Select a practitioner" },
-  { value: "ologin486@gmail.com", label: "Practioner 1" },
-  { value: "charlyn.tom@icloud.com", label: "Practioner 2" },
+  { value: "afrahalabayaty@gmail.com", label: "Afrah", code: "A7kP3xZ9" },
+  { value: "johnnie@johnnielloyd.com", label: "Johnnie Lloyd", code: "M2qL8vY1" },
+  { value: "sophia@sophiabailey.co.uk", label: "Sophia Bailey Larsen", code: "R9tB6sWd" },
+  { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "V5nX0pKa" },
+  { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "J8mC7qLf" },
+];
+
+const practitionerCodes = [
+  { value: "", label: "Select Code" },
+  { value: "A7kP3xZ9", label: "A7kP3xZ9", email: "afrahalabayaty@gmail.com" },
+  { value: "M2qL8vY1", label: "M2qL8vY1", email: "johnnie@johnnielloyd.com" },
+  { value: "R9tB6sWd", label: "R9tB6sWd", email: "sophia@sophiabailey.co.uk" },
+  { value: "V5nX0pKa", label: "V5nX0pKa", email: "charlyn.tom@icloud.com" },
+  { value: "J8mC7qLf", label: "J8mC7qLf", email: "charlyn.tom2019@gmail.com" },
 ];
 
 export default function Home() {
@@ -42,27 +54,32 @@ export default function Home() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
   const [emailError, setEmailError] = useState(false);
+  const [practitionerCode, setPractitionerCode] = useState('');
+
+  const defaultValues = {
+    firstName: '',
+    email: '',
+    practitionerEmail: '',
+    ques1: '',
+    ques2: '',
+    ques3: '',
+    ques4: '',
+    ques5: '',
+  };
 
   const {
     control,
     handleSubmit: hookFormSubmit,
     formState: { errors, isValid },
     getValues,
-    reset
+    reset,
+    setValue,
+    watch
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
     mode: 'onChange',
     reValidateMode: 'onChange',
-    defaultValues: {
-      firstName: '',
-      email: '',
-      practitionerEmail: '',
-      ques1: '',
-      ques2: '',
-      ques3: '',
-      ques4: '',
-      ques5: '',
-    }
+    defaultValues
   });
 
   useEffect(() => {
@@ -200,6 +217,32 @@ export default function Home() {
 
   const hasDuplicateError = 'duplicateResponses' in errors;
 
+  // Handler for updating code when practitioner changes
+  const handlePractitionerChange = (email: string) => {
+    const practitioner = practitionerEmails.find(p => p.value === email);
+    if (practitioner && practitioner.code) {
+      setPractitionerCode(practitioner.code);
+    } else {
+      setPractitionerCode('');
+    }
+  };
+
+  // Handler for updating practitioner when code changes
+  const handleCodeChange = (code: string) => {
+    const codeEntry = practitionerCodes.find(c => c.value === code);
+    if (codeEntry && codeEntry.email) {
+      setValue('practitionerEmail', codeEntry.email);
+    }
+    setPractitionerCode(code);
+  };
+
+  // Watch practitioner email for changes
+  const practitionerEmailValue = watch('practitionerEmail');
+  
+  useEffect(() => {
+    handlePractitionerChange(practitionerEmailValue);
+  }, [practitionerEmailValue]);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
@@ -243,6 +286,7 @@ export default function Home() {
                 <p id="firstName-error" className="mt-1 text-sm text-red-500">{errors.firstName.message}</p>
               )}
             </div>
+
             <div>
               <label htmlFor='email' className="block text-sm font-bold text-black">Email <span className="text-red-500">*</span></label>
               <Controller
@@ -292,6 +336,25 @@ export default function Home() {
                 <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
               )}
             </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor='practitionerCode' className="block text-sm font-bold text-black">
+                Practitioner Code <span className="text-red-500">*</span>
+              </label>
+              <select
+                id="practitionerCode"
+                value={practitionerCode}
+                onChange={(e) => handleCodeChange(e.target.value)}
+                className={`mt-1 block w-full p-2.5 border border-gray-300 rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+              >
+                {practitionerCodes.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+            
           </div>
 
           {questions.map((question, index) => {
