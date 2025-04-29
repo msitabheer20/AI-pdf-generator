@@ -10,7 +10,7 @@ import { sanitizeFormData } from '@/utils/validation/sanitize';
 import { AssessmentFormData, assessmentFormSchema } from '@/utils/validation/schema';
 import Image from 'next/image';
 
-type FormDataWithDuplicateCheck = AssessmentFormData &  {
+type FormDataWithDuplicateCheck = AssessmentFormData & {
   duplicateResponses?: string
 }
 
@@ -39,6 +39,8 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
 const practitionerEmails = [
   { value: "", label: "Select a practitioner" },
   { value: "j.grant@neurochangeinstitute.org", label: "John Grant", code: "JG0001" },
+  { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "CL1002" },
+  { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "CT2019" },
 ];
 
 // const practitionerCodes = [
@@ -53,6 +55,8 @@ const practitionerEmails = [
 const practitionerCodes = [
   { value: "", label: "Select Code" },
   { value: "JG0001", label: "JG0001", email: "j.grant@neurochangeinstitute.org" },
+  { value: "CL1002", label: "CL1002", email: "charlyn.tom@icloud.com" },
+  { value: "CT2019", label: "CT2019", email: "charlyn.tom2019@gmail.com" },
 ];
 
 export default function Home() {
@@ -132,14 +136,14 @@ export default function Home() {
       try {
         const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
         const clientUrl = window.URL.createObjectURL(clientBlob);
-        
+
         setLoading(false);
         setGenerating(false);
         setClientPdfUrl(clientUrl);
-        
+
         if (sanitizedData.practitionerEmail) {
           const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
-          
+
           const practitionerBase64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(practitionerBlob);
@@ -148,7 +152,7 @@ export default function Home() {
               resolve(base64data.split(',')[1]);
             };
           });
-          
+
           const clientBase64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();
             reader.readAsDataURL(clientBlob);
@@ -157,7 +161,7 @@ export default function Home() {
               resolve(base64data.split(',')[1]);
             };
           });
-          
+
           fetch('/api/send-practitioner-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -178,9 +182,9 @@ export default function Home() {
             setEmailError(true);
           });
         }
-        
+
         reset();
-        
+
       } catch (pdfError) {
         console.error('PDF generation error:', pdfError);
         setError('Error generating PDFs. Please try again.');
@@ -247,7 +251,7 @@ export default function Home() {
 
   // Watch practitioner email for changes
   const practitionerEmailValue = watch('practitionerEmail');
-  
+
   useEffect(() => {
     handlePractitionerChange(practitionerEmailValue);
   }, [practitionerEmailValue]);
@@ -257,7 +261,7 @@ export default function Home() {
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="flex items-center justify-center mb-6">
           <div className="w-25 h-25 mr-3 relative">
-            <Image 
+            <Image
               src="/nci-logo.png"
               alt=''
               fill
@@ -363,7 +367,7 @@ export default function Home() {
                 ))}
               </select>
             </div>
-            
+
           </div>
 
           {questions.map((question, index) => {
