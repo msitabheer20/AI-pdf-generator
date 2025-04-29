@@ -453,7 +453,7 @@ export default function Home() {
             <div className="space-y-2">
               <a
                 href={clientPdfUrl}
-                download={`Client_Assessment_${getValues().firstName || 'Report'}.pdf`}
+                download={`Neuro_Change_Method™_Client_Assessment_Report.pdf`}
                 className="flex items-center justify-between px-4 py-3 bg-white text-blue-500 rounded-md border border-blue-100 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-200"
                 aria-label="Download Client Assessment Report PDF"
               >
