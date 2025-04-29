@@ -29,12 +29,12 @@ export function formatClientUserPrompt(userInput: string): string {
           "type": "highlight",
           "title": "What the Neuro Change Method™ Can Do for You",
           "points": {
-            "toolName1": "6-8 word description of effect",
-            // 5-6 more tool points
+            "toolName": "6-8 word description of effect of this tool on the client",
+            // replace the toolName with actual tool names and add 5-6 more tool points which are neccessary according to client condition
           },
           "closingStatement": "Motivational closing statement"
         }
       }
     }
   `;
-} 
+}

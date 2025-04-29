@@ -79,12 +79,12 @@ export const sendClientAndPractitionerReports = async (
       `,
       attachments: [
         {
-          filename: `Practitioner_Report_${clientName}.pdf`,
+          filename: `Neuro_Change_Method™_Practitioner_Report.pdf`,
           content: practitionerPdfBuffer,
           contentType: 'application/pdf',
         },
         {
-          filename: `Client_Report_${clientName}.pdf`,
+          filename: `Neuro_Change_Method™_Client_Assessment_Report.pdf`,
           content: clientPdfBuffer,
           contentType: 'application/pdf',
         }
@@ -115,7 +115,7 @@ export const sendClientAndPractitionerReports = async (
       `,
       attachments: [
         {
-          filename: `Client_Assessment_${clientName}.pdf`,
+          filename: `Neuro_Change_Method™_Client_Assessment_Report.pdf`,
           content: clientPdfBuffer,
           contentType: 'application/pdf',
         }
@@ -142,12 +142,12 @@ export const sendClientAndPractitionerReports = async (
     `,
     attachments: [
       {
-        filename: `Admin_Copy_Practitioner_Report_${clientName}.pdf`,
+        filename: `Neuro_Change_Method™_Practitioner_Report.pdf`,
         content: practitionerPdfBuffer,
         contentType: 'application/pdf',
       },
       {
-        filename: `Admin_Copy_Client_Report_${clientName}.pdf`,
+        filename: `Neuro_Change_Method™_Client_Assessment_Report.pdf`,
         content: clientPdfBuffer,
         contentType: 'application/pdf',
       }

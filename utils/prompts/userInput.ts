@@ -16,4 +16,4 @@ export function formatUserInput(userData: AssessmentFormData): string {
       - Q4: When was the last time you felt truly aligned—with yourself, your goals, or your life? ${ques4}
       - Q5: If you could reprogram one part of your mind—what would it be, and why? ${ques5}
   `;
-} 
+}

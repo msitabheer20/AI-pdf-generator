@@ -39,6 +39,7 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
 const practitionerEmails = [
   { value: "", label: "Select a practitioner" },
   { value: "j.grant@neurochangeinstitute.org", label: "John Grant", code: "JG0001" },
+  // { value: "medeveloper2025@gmail.com", label: "Developer Test", code: "NL0001" },
   { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "CL1002" },
   { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "CT2019" },
 ];
@@ -55,6 +56,7 @@ const practitionerEmails = [
 const practitionerCodes = [
   { value: "", label: "Select Code" },
   { value: "JG0001", label: "JG0001", email: "j.grant@neurochangeinstitute.org" },
+  // { value: "NL0001", label: "NL0001", email: "medeveloper2025@gmail.com" },
   { value: "CL1002", label: "CL1002", email: "charlyn.tom@icloud.com" },
   { value: "CT2019", label: "CT2019", email: "charlyn.tom2019@gmail.com" },
 ];
@@ -446,7 +448,7 @@ export default function Home() {
         {clientPdfUrl && (
           <div className="mt-6 space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-100">
             <h2 className="text-lg font-medium text-gray-700">Your Assessment Report</h2>
-            <p className="text-sm text-gray-500">Your personalized report has been generated and is ready for download.</p>
+            <p className="text-sm text-gray-500">Your personalized report has been sent to your email. You may also download it using the link below.</p>
 
             <div className="space-y-2">
               <a
