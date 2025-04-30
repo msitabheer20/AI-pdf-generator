@@ -339,6 +339,7 @@ export default function Home() {
                   <input
                     type="text"
                     id="practitionerCode"
+                    placeholder="Your practitioner code"
                     disabled={practitioners.length === 0}
                     aria-invalid={errors.practitionerCode ? "true" : "false"}
                     aria-describedby={errors.practitionerCode ? "practitionerCode-error" : undefined}
@@ -368,7 +369,7 @@ export default function Home() {
                     {...field}
                     disabled={true}
                   >
-                    <option value="">Select a practitioner</option>
+                    <option value=""></option>
                     {practitioners.map((practitioner) => (
                       <option key={practitioner.email} value={practitioner.email}>
                         {practitioner.label}
