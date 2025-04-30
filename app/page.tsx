@@ -333,8 +333,8 @@ export default function Home() {
                   <select
                     id="practitionerEmail"
                     aria-invalid="false"
-                    className={`mt-1 block w-full p-2.5 border border-gray-300
-                      rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}
+                    className={`mt-1 block w-full p-2 border border-gray-300
+                      rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed appearance-none`}
                     {...field}
                     disabled={true}
                   >
