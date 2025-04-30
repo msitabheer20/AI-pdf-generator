@@ -323,33 +323,6 @@ export default function Home() {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor="practitionerEmail" className="block text-sm font-bold text-black">
-                Practitioner Email
-              </label>
-              <Controller
-                name="practitionerEmail"
-                control={control}
-                render={({ field }) => (
-                  <select
-                    id="practitionerEmail"
-                    aria-invalid="false"
-                    className={`mt-1 block w-full p-2 border border-gray-300
-                      rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed appearance-none`}
-                    {...field}
-                    disabled={true}
-                  >
-                    <option value="">Select a practitioner</option>
-                    {practitioners.map((practitioner) => (
-                      <option key={practitioner.email} value={practitioner.email}>
-                        {practitioner.label}
-                      </option>
-                    ))}
-                  </select>
-                )}
-              />
-            </div>
-
-            <div className="md:col-span-2">
               <label htmlFor="practitionerCode" className="block text-sm font-bold text-black">
                 Practitioner Code <span className="text-red-500">*</span>
               </label>
@@ -377,6 +350,33 @@ export default function Home() {
               {errors.practitionerCode && (
                 <p id="practitionerCode-error" className="mt-1 text-sm text-red-500">{errors.practitionerCode.message}</p>
               )}
+            </div>
+
+            <div className="md:col-span-2">
+              <label htmlFor="practitionerEmail" className="block text-sm font-bold text-black">
+                
+              </label>
+              <Controller
+                name="practitionerEmail"
+                control={control}
+                render={({ field }) => (
+                  <select
+                    id="practitionerEmail"
+                    aria-invalid="false"
+                    className={`mt-1 block w-full p-2 border border-gray-300
+                      rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed appearance-none`}
+                    {...field}
+                    disabled={true}
+                  >
+                    <option value="">Select a practitioner</option>
+                    {practitioners.map((practitioner) => (
+                      <option key={practitioner.email} value={practitioner.email}>
+                        {practitioner.label}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              />
             </div>
 
           </div>
