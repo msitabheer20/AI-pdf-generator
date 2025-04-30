@@ -45,6 +45,7 @@ export default function Home() {
   const [practitionerCode, setPractitionerCode] = useState('');
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
   const [loadingPractitioners, setLoadingPractitioners] = useState(true);
+  const [practitionerCodeError, setPractitionerCodeError] = useState('');
 
   const defaultValues = {
     firstName: '',
@@ -93,6 +94,11 @@ export default function Home() {
   }, [showConfirmation]);
 
   const onSubmit = () => {
+    if (practitionerCode.trim() !== '' && !practitioners.some(p => p.code === practitionerCode)) {
+      setPractitionerCodeError('Enter a valid practitioner code');
+      return;
+    }
+    
     setShowConfirmation(true);
   };
 
@@ -198,6 +204,11 @@ export default function Home() {
       setError('');
       handleConfirmedSubmit();
     } else {
+      // Check practitioner code validity
+      if (practitionerCode.trim() !== '' && !practitioners.some(p => p.code === practitionerCode)) {
+        setPractitionerCodeError('Enter a valid practitioner code');
+        return;
+      }
       hookFormSubmit(onSubmit)();
     }
   };
@@ -225,10 +236,19 @@ export default function Home() {
   const handleCodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const code = e.target.value;
     setPractitionerCode(code);
+    
+    if (code.trim() === '') {
+      setPractitionerCodeError('');
+      setValue('practitionerEmail', '');
+      return;
+    }
+    
     const practitioner = practitioners.find(p => p.code === code);
     if (practitioner) {
+      setPractitionerCodeError('');
       setValue('practitionerEmail', practitioner.email);
     } else {
+      setPractitionerCodeError('Enter a valid practitioner code');
       setValue('practitionerEmail', '');
     }
   };
@@ -309,9 +329,8 @@ export default function Home() {
                 render={({ field }) => (
                   <select
                     id="practitionerEmail"
-                    aria-invalid={errors.practitionerEmail ? "true" : "false"}
-                    aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
-                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail ? 'border-red-500' : 'border-gray-300'}
+                    aria-invalid="false"
+                    className={`mt-1 block w-full p-2.5 border border-gray-300
                       rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}
                     {...field}
                     disabled={true}
@@ -325,13 +344,10 @@ export default function Home() {
                   </select>
                 )}
               />
-              {errors.practitionerEmail && (
-                <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
-              )}
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor='practitionerCode' className="block text-sm font-bold text-black">
+              <label htmlFor="practitionerCode" className="block text-sm font-bold text-black">
                 Practitioner Code <span className="text-red-500">*</span>
               </label>
               <input
@@ -340,8 +356,11 @@ export default function Home() {
                 value={practitionerCode}
                 onChange={handleCodeInputChange}
                 disabled={practitioners.length === 0}
-                className={`mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                className={`mt-1 block w-full p-2 border ${practitionerCodeError ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
               />
+              {practitionerCodeError && (
+                <p className="mt-1 text-sm text-red-500">{practitionerCodeError}</p>
+              )}
             </div>
 
           </div>
@@ -375,6 +394,11 @@ export default function Home() {
               </div>
             );
           })}
+
+          <div className="text-sm text-gray-500 italic">
+            <p>Fields marked with <span className="text-red-500">*</span> are required.</p>
+            {/* <p>You must enter a valid practitioner code to continue.</p> */}
+          </div>
 
           {hasDuplicateError && (
             <div className="p-3 text-[13px] bg-yellow-50 text-yellow-700 rounded-md">
