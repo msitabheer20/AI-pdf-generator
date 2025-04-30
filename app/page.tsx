@@ -10,6 +10,12 @@ import { sanitizeFormData } from '@/utils/validation/sanitize';
 import { AssessmentFormData, assessmentFormSchema } from '@/utils/validation/schema';
 import Image from 'next/image';
 
+interface Practitioner {
+  email: string;
+  label: string;
+  code: string;
+}
+
 type FormDataWithDuplicateCheck = AssessmentFormData & {
   duplicateResponses?: string
 }
@@ -28,39 +34,6 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
   }
 });
 
-// const practitionerEmails = [
-//   { value: "", label: "Select a practitioner" },
-//   { value: "afrahalabayaty@gmail.com", label: "Afrah", code: "A7kP3" },
-//   { value: "johnnie@johnnielloyd.com", label: "Johnnie Lloyd", code: "M2qL8" },
-//   { value: "sophia@sophiabailey.co.uk", label: "Sophia Bailey Larsen", code: "R9tB6" },
-//   { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "V5nX0" },
-//   { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "J8mC7" },
-// ];
-const practitionerEmails = [
-  { value: "", label: "Select a practitioner" },
-  { value: "j.grant@neurochangeinstitute.org", label: "John Grant", code: "JG0001" },
-  // { value: "medeveloper2025@gmail.com", label: "Developer Test", code: "NL0001" },
-  { value: "charlyn.tom@icloud.com", label: "Charlyn tomayao1", code: "CL1002" },
-  { value: "charlyn.tom2019@gmail.com", label: "charlyntomayao2", code: "CT2019" },
-];
-
-// const practitionerCodes = [
-//   { value: "", label: "Select Code" },
-//   { value: "A7kP3", label: "A7kP3", email: "afrahalabayaty@gmail.com" },
-//   { value: "M2qL8", label: "M2qL8", email: "johnnie@johnnielloyd.com" },
-//   { value: "R9tB6", label: "R9tB6", email: "sophia@sophiabailey.co.uk" },
-//   { value: "V5nX0", label: "V5nX0", email: "charlyn.tom@icloud.com" },
-//   { value: "J8mC7", label: "J8mC7", email: "charlyn.tom2019@gmail.com" },
-// ];
-
-const practitionerCodes = [
-  { value: "", label: "Select Code" },
-  { value: "JG0001", label: "JG0001", email: "j.grant@neurochangeinstitute.org" },
-  // { value: "NL0001", label: "NL0001", email: "medeveloper2025@gmail.com" },
-  { value: "CL1002", label: "CL1002", email: "charlyn.tom@icloud.com" },
-  { value: "CT2019", label: "CT2019", email: "charlyn.tom2019@gmail.com" },
-];
-
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -70,6 +43,8 @@ export default function Home() {
   const [retryMode, setRetryMode] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [practitionerCode, setPractitionerCode] = useState('');
+  const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
+  const [loadingPractitioners, setLoadingPractitioners] = useState(true);
 
   const defaultValues = {
     firstName: '',
@@ -96,6 +71,20 @@ export default function Home() {
     reValidateMode: 'onChange',
     defaultValues
   });
+
+  // Fetch practitioner data from JSON
+  useEffect(() => {
+    fetch('/practitioners.json')
+      .then(response => response.json())
+      .then(data => {
+        setPractitioners(data);
+        setLoadingPractitioners(false);
+      })
+      .catch(error => {
+        console.error('Error fetching practitioners:', error);
+        setLoadingPractitioners(false);
+      });
+  }, []);
 
   useEffect(() => {
     if (showConfirmation) {
@@ -232,31 +221,17 @@ export default function Home() {
 
   const hasDuplicateError = 'duplicateResponses' in errors;
 
-  // Handler for updating code when practitioner changes
-  const handlePractitionerChange = (email: string) => {
-    const practitioner = practitionerEmails.find(p => p.value === email);
-    if (practitioner && practitioner.code) {
-      setPractitionerCode(practitioner.code);
-    } else {
-      setPractitionerCode('');
-    }
-  };
-
-  // Handler for updating practitioner when code changes
-  const handleCodeChange = (code: string) => {
-    const codeEntry = practitionerCodes.find(c => c.value === code);
-    if (codeEntry && codeEntry.email) {
-      setValue('practitionerEmail', codeEntry.email);
-    }
+  // Handler for updating practitioner email when code changes
+  const handleCodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const code = e.target.value;
     setPractitionerCode(code);
+    const practitioner = practitioners.find(p => p.code === code);
+    if (practitioner) {
+      setValue('practitionerEmail', practitioner.email);
+    } else {
+      setValue('practitionerEmail', '');
+    }
   };
-
-  // Watch practitioner email for changes
-  const practitionerEmailValue = watch('practitionerEmail');
-
-  useEffect(() => {
-    handlePractitionerChange(practitionerEmailValue);
-  }, [practitionerEmailValue]);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -325,8 +300,8 @@ export default function Home() {
             </div>
 
             <div className="md:col-span-2">
-              <label htmlFor='practitionerEmail' className="block text-sm font-bold text-black">
-                Practitioner Email <span className="text-red-500">*</span>
+              <label htmlFor="practitionerEmail" className="block text-sm font-bold text-black">
+                Practitioner Email
               </label>
               <Controller
                 name="practitionerEmail"
@@ -336,12 +311,15 @@ export default function Home() {
                     id="practitionerEmail"
                     aria-invalid={errors.practitionerEmail ? "true" : "false"}
                     aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
-                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2.5 border ${errors.practitionerEmail ? 'border-red-500' : 'border-gray-300'}
+                      rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed`}
                     {...field}
+                    disabled={true}
                   >
-                    {practitionerEmails.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
+                    <option value="">Select a practitioner</option>
+                    {practitioners.map((practitioner) => (
+                      <option key={practitioner.email} value={practitioner.email}>
+                        {practitioner.label}
                       </option>
                     ))}
                   </select>
@@ -356,18 +334,14 @@ export default function Home() {
               <label htmlFor='practitionerCode' className="block text-sm font-bold text-black">
                 Practitioner Code <span className="text-red-500">*</span>
               </label>
-              <select
+              <input
+                type="text"
                 id="practitionerCode"
                 value={practitionerCode}
-                onChange={(e) => handleCodeChange(e.target.value)}
-                className={`mt-1 block w-full p-2.5 border border-gray-300 rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
-              >
-                {practitionerCodes.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
+                onChange={handleCodeInputChange}
+                disabled={practitioners.length === 0}
+                className={`mt-1 block w-full p-2 border border-gray-300 rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+              />
             </div>
 
           </div>
