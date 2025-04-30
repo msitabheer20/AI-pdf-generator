@@ -42,14 +42,13 @@ export default function Home() {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [retryMode, setRetryMode] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const [practitionerCode, setPractitionerCode] = useState('');
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
   const [loadingPractitioners, setLoadingPractitioners] = useState(true);
-  const [practitionerCodeError, setPractitionerCodeError] = useState('');
 
   const defaultValues = {
     firstName: '',
     email: '',
+    practitionerCode: '',
     practitionerEmail: '',
     ques1: '',
     ques2: '',
@@ -65,13 +64,17 @@ export default function Home() {
     getValues,
     reset,
     setValue,
-    watch
+    watch,
+    trigger
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
     mode: 'onChange',
     reValidateMode: 'onChange',
     defaultValues
   });
+
+  // Watch practitioner code value
+  const practitionerCode = watch('practitionerCode');
 
   // Fetch practitioner data from JSON
   useEffect(() => {
@@ -93,9 +96,35 @@ export default function Home() {
     }
   }, [showConfirmation]);
 
+  // Validate practitioner code and update practitioner email whenever the code changes
+  useEffect(() => {
+    if (practitionerCode) {
+      const practitioner = practitioners.find(p => p.code === practitionerCode);
+      if (practitioner) {
+        setValue('practitionerEmail', practitioner.email);
+      } else {
+        setValue('practitionerEmail', '');
+        // Set custom error for invalid code
+        if (practitioners.length > 0) {
+          setValue('practitionerCode', practitionerCode, {
+            shouldValidate: true,
+            shouldDirty: true
+          });
+        }
+      }
+    } else {
+      setValue('practitionerEmail', '');
+    }
+  }, [practitionerCode, practitioners, setValue]);
+
   const onSubmit = () => {
-    if (practitionerCode.trim() !== '' && !practitioners.some(p => p.code === practitionerCode)) {
-      setPractitionerCodeError('Enter a valid practitioner code');
+    // Additional validation - check if code is valid
+    const practitionerCode = getValues('practitionerCode');
+    if (practitionerCode && !practitioners.some(p => p.code === practitionerCode)) {
+      setValue('practitionerCode', practitionerCode, { 
+        shouldValidate: true,
+        shouldDirty: true 
+      });
       return;
     }
     
@@ -204,11 +233,6 @@ export default function Home() {
       setError('');
       handleConfirmedSubmit();
     } else {
-      // Check practitioner code validity
-      if (practitionerCode.trim() !== '' && !practitioners.some(p => p.code === practitionerCode)) {
-        setPractitionerCodeError('Enter a valid practitioner code');
-        return;
-      }
       hookFormSubmit(onSubmit)();
     }
   };
@@ -231,27 +255,6 @@ export default function Home() {
   };
 
   const hasDuplicateError = 'duplicateResponses' in errors;
-
-  // Handler for updating practitioner email when code changes
-  const handleCodeInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const code = e.target.value;
-    setPractitionerCode(code);
-    
-    if (code.trim() === '') {
-      setPractitionerCodeError('');
-      setValue('practitionerEmail', '');
-      return;
-    }
-    
-    const practitioner = practitioners.find(p => p.code === code);
-    if (practitioner) {
-      setPractitionerCodeError('');
-      setValue('practitionerEmail', practitioner.email);
-    } else {
-      setPractitionerCodeError('Enter a valid practitioner code');
-      setValue('practitionerEmail', '');
-    }
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
@@ -350,16 +353,29 @@ export default function Home() {
               <label htmlFor="practitionerCode" className="block text-sm font-bold text-black">
                 Practitioner Code <span className="text-red-500">*</span>
               </label>
-              <input
-                type="text"
-                id="practitionerCode"
-                value={practitionerCode}
-                onChange={handleCodeInputChange}
-                disabled={practitioners.length === 0}
-                className={`mt-1 block w-full p-2 border ${practitionerCodeError ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+              <Controller
+                name="practitionerCode"
+                control={control}
+                rules={{
+                  validate: (value) => {
+                    if (!value) return 'Practitioner code is required';
+                    return practitioners.some(p => p.code === value) || 'Enter a valid practitioner code';
+                  }
+                }}
+                render={({ field }) => (
+                  <input
+                    type="text"
+                    id="practitionerCode"
+                    disabled={practitioners.length === 0}
+                    aria-invalid={errors.practitionerCode ? "true" : "false"}
+                    aria-describedby={errors.practitionerCode ? "practitionerCode-error" : undefined}
+                    className={`mt-1 block w-full p-2 border ${errors.practitionerCode ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    {...field}
+                  />
+                )}
               />
-              {practitionerCodeError && (
-                <p className="mt-1 text-sm text-red-500">{practitionerCodeError}</p>
+              {errors.practitionerCode && (
+                <p id="practitionerCode-error" className="mt-1 text-sm text-red-500">{errors.practitionerCode.message}</p>
               )}
             </div>
 
@@ -396,8 +412,7 @@ export default function Home() {
           })}
 
           <div className="text-sm text-gray-500 italic">
-            <p>Fields marked with <span className="text-red-500">*</span> are required.</p>
-            {/* <p>You must enter a valid practitioner code to continue.</p> */}
+            {/* <p>Fields marked with <span className="text-red-500">*</span> are required.</p> */}
           </div>
 
           {hasDuplicateError && (

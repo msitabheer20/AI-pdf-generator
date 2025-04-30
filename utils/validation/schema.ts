@@ -16,6 +16,10 @@ export const assessmentFormSchema = z.object({
         .max(100, 'Email is too long')
         .refine(email => email.includes('.'), { message: 'Email must include a domain extension (e.g., .com)' }),
 
+    practitionerCode: z
+        .string()
+        .min(1, 'Practitioner code is required'),
+
     practitionerEmail: z
         .string()
         .email('Please enter a valid practitioner email')
