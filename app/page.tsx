@@ -118,16 +118,6 @@ export default function Home() {
   }, [practitionerCode, practitioners, setValue]);
 
   const onSubmit = () => {
-    // Additional validation - check if code is valid
-    const practitionerCode = getValues('practitionerCode');
-    if (practitionerCode && !practitioners.some(p => p.code === practitionerCode)) {
-      setValue('practitionerCode', practitionerCode, { 
-        shouldValidate: true,
-        shouldDirty: true 
-      });
-      return;
-    }
-    
     setShowConfirmation(true);
   };
 
@@ -329,12 +319,6 @@ export default function Home() {
               <Controller
                 name="practitionerCode"
                 control={control}
-                rules={{
-                  validate: (value) => {
-                    if (!value) return 'Practitioner code is required';
-                    return practitioners.some(p => p.code === value) || 'Enter a valid practitioner code';
-                  }
-                }}
                 render={({ field }) => (
                   <input
                     type="text"
@@ -343,13 +327,13 @@ export default function Home() {
                     disabled={practitioners.length === 0}
                     aria-invalid={errors.practitionerCode ? "true" : "false"}
                     aria-describedby={errors.practitionerCode ? "practitionerCode-error" : undefined}
-                    className={`mt-1 block w-full p-2 border ${errors.practitionerCode ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
+                    className={`mt-1 block w-full p-2 border ${errors.practitionerEmail ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
                     {...field}
                   />
                 )}
               />
-              {errors.practitionerCode && (
-                <p id="practitionerCode-error" className="mt-1 text-sm text-red-500">{errors.practitionerCode.message}</p>
+              {errors.practitionerEmail && (
+                <p id="practitionerEmail-error" className="mt-1 text-sm text-red-500">{errors.practitionerEmail.message}</p>
               )}
             </div>
 
@@ -363,7 +347,8 @@ export default function Home() {
                 render={({ field }) => (
                   <select
                     id="practitionerEmail"
-                    aria-invalid="false"
+                    aria-invalid={errors.practitionerEmail ? "true" : "false"}
+                    aria-describedby={errors.practitionerEmail ? "practitionerEmail-error" : undefined}
                     className={`mt-1 block w-full p-2 border border-gray-300
                       rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed appearance-none`}
                     {...field}
