@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-/**
- * Schema for validating assessment form submissions
- */
+
 export const assessmentFormSchema = z.object({
     firstName: z
         .string()
