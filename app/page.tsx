@@ -141,6 +141,9 @@ export default function Home() {
       }
 
       const { clientContent, practitionerContent, firstName } = await response.json();
+      
+      // Extract just the first name if user entered full name
+      const firstNameOnly = firstName.split(' ')[0];
 
       setGenerating(true);
 
@@ -150,7 +153,7 @@ export default function Home() {
       };
 
       try {
-        const clientBlob = await generateClientPDF(firstName, clientContent, frontendResponses);
+        const clientBlob = await generateClientPDF(firstNameOnly, clientContent, frontendResponses);
         const clientUrl = window.URL.createObjectURL(clientBlob);
 
         setLoading(false);
@@ -158,7 +161,7 @@ export default function Home() {
         setClientPdfUrl(clientUrl);
 
         if (sanitizedData.practitionerEmail) {
-          const practitionerBlob = await generatePractitionerPDF(firstName, practitionerContent);
+          const practitionerBlob = await generatePractitionerPDF(firstNameOnly, practitionerContent);
 
           const practitionerBase64 = await new Promise<string>((resolve) => {
             const reader = new FileReader();

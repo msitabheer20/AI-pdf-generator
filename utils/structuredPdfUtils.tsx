@@ -393,7 +393,7 @@ const renderQuestionSection = (questionData: QuestionData, key: string | number)
 // Render highlight section with points
 const renderHighlightSection = (highlightData: HighlightData, key: string | number) => (
   <View key={key} style={styles.highlightBox} wrap>
-    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }} wrap={false}>
       <BulbIcon />
       <Text style={{ ...styles.highlightTitle, marginLeft: 4 }}>{parseTrademarks(highlightData.title)}</Text>
     </View>
@@ -722,7 +722,7 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
 
           {/* Fixed Closing Section */}
           <View style={styles.closingSection}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 5 }} wrap={false}>
               <DiamondIcon />
               <Text style={{ ...styles.sectionTitle, marginLeft: 4, marginBottom: 10 }}>Why Now, Why You, and Why a Neuro Change Practitioner?</Text>
             </View>
@@ -762,7 +762,7 @@ export const generateClientPDF = async (firstName: string, clientReport: ClientR
             <Text style={{ ...styles.normalText, marginBottom: 10 }}>
               Are you ready to stop waiting for permission—and start building the reality that reflects who you already are?
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'flex-start', marginTop: 5 }} wrap={false}>
               <CalendarIcon />
               <Text style={{ marginLeft: 4, fontWeight: 'bold', flex: 1 }}>
                 Book your complimentary 20 minute discovery session with an Accredited Neuro Change Practitioner today. Your next breakthrough isn't in the future. It's in your decision to act now.
