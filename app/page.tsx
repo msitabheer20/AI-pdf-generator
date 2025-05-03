@@ -28,7 +28,7 @@ const formSchemaWithDuplicateCheck = assessmentFormSchema.superRefine((data, ctx
   if (uniqueResponses.size !== responses.length) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: "Please provide unique answers for each question. Some of your responses appear to be identical.",
+      message: "Try to provide unique answers for each question — It helps us better understand",
       path: ["duplicateResponses"]
     });
   }
@@ -406,7 +406,7 @@ export default function Home() {
 
           {hasDuplicateError && (
             <div className="p-3 text-[13px] bg-yellow-50 text-yellow-700 rounded-md">
-              Please provide unique answers for each question. Some of your responses appear to be identical.
+              Try to provide unique answers for each question — It helps us better understand your condition.
             </div>
           )}
 
