@@ -42,7 +42,6 @@ export default function Home() {
   const [retryMode, setRetryMode] = useState(false);
   const [emailError, setEmailError] = useState(false);
   const [practitioners, setPractitioners] = useState<Practitioner[]>([]);
-  const [loadingPractitioners, setLoadingPractitioners] = useState(true);
 
   const defaultValues = {
     firstName: '',
@@ -59,12 +58,11 @@ export default function Home() {
   const {
     control,
     handleSubmit: hookFormSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     getValues,
     reset,
     setValue,
-    watch,
-    trigger
+    watch
   } = useForm<FormDataWithDuplicateCheck>({
     resolver: zodResolver(formSchemaWithDuplicateCheck),
     mode: 'onChange',
@@ -81,11 +79,9 @@ export default function Home() {
       .then(response => response.json())
       .then(data => {
         setPractitioners(data);
-        setLoadingPractitioners(false);
       })
       .catch(error => {
         console.error('Error fetching practitioners:', error);
-        setLoadingPractitioners(false);
       });
   }, []);
 
@@ -140,7 +136,7 @@ export default function Home() {
       }
 
       const { clientContent, practitionerContent, firstName } = await response.json();
-      
+
       // Extract just the first name if user entered full name
       const firstNameOnly = firstName.split(' ')[0];
 
@@ -249,7 +245,7 @@ export default function Home() {
   const hasDuplicateError = 'duplicateResponses' in errors;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4 pb-16">
       <div className="bg-white p-8 rounded-lg shadow-lg max-w-2xl w-full">
         <div className="flex items-center justify-center mb-6">
           <div className="w-25 h-25 mr-3 relative">
@@ -341,7 +337,7 @@ export default function Home() {
 
             <div className="md:col-span-2">
               <label htmlFor="practitionerEmail" className="block text-sm font-bold text-black">
-                
+
               </label>
               <Controller
                 name="practitionerEmail"
