@@ -275,7 +275,7 @@ export default function Home() {
                   <input
                     id="firstName"
                     type="text"
-                    placeholder="Your first name"
+                    placeholder="Your name"
                     aria-invalid={errors.firstName ? "true" : "false"}
                     aria-describedby={errors.firstName ? "firstName-error" : undefined}
                     className={`mt-1 block w-full p-2 border ${errors.firstName ? 'border-red-500' : 'border-gray-300'} rounded-md text-gray-800 focus:ring-blue-500 focus:border-blue-500`}
