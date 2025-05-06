@@ -1,7 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { z } from 'zod';
-import DOMPurify from 'isomorphic-dompurify';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { generateClientPDF, generatePractitionerPDF } from '@/utils/structuredPdfUtils';
@@ -418,7 +417,7 @@ export default function Home() {
 
           {emailError && clientPdfUrl && (
             <div className="p-3 text-[13px] bg-red-50 text-red-700 rounded-md">
-              We couldn't send the report to your email. Please download your report below or check your spam folder if you think it went through.
+              We couldn&apos;t send the report to your email. Please download your report below or check your spam folder if you think it went through.
             </div>
           )}
 
