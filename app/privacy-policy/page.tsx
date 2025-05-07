@@ -6,7 +6,7 @@ const PrivacyPolicy = () => {
   const router = useRouter();
 
   const navigateToAssessment = () => {
-    router.push('/');
+    router.push('/assessment');
   };
 
   return (

@@ -6,7 +6,7 @@ const TermsAndConditions = () => {
   const router = useRouter();
 
   const navigateToAssessment = () => {
-    router.push('/');
+    router.push('/assessment');
   };
 
   return (
