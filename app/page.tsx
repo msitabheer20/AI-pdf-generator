@@ -13,12 +13,12 @@ export default function Home() {
       </main>
       
       <div className="w-full relative">
-        <Image
+            <Image
           src="/neurochange-home.png"
           alt="DreamScape AI"
           width={1920}
           height={1080}
-          priority
+              priority
           style={{
             width: '100%',
             height: 'auto',
@@ -44,11 +44,11 @@ export default function Home() {
                 href="/assessment" 
                 className="inline-block px-5 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-lg sm:text-xl md:text-2xl text-orange-600 font-semibold rounded-full border border-orange-200 bg-white overflow-hidden transition-all duration-300 ease-in-out hover:bg-orange-600 hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2"
               >
-                Take an Assessment
+                Personalized Report
               </Link>
+              </div>
             </div>
           </div>
-        </div>
       </div>
     </div>
   );
