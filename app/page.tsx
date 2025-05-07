@@ -8,7 +8,7 @@ export default function Home() {
       <main className="container max-w-4xl mx-auto px-4 pt-8 md:pt-12">
         <h1 className="text-center mb-6 md:mb-12 font-syne">
           <span className="block text-4xl md:text-5xl lg:text-9xl text-gray-800">Welcome to</span>
-          <span className="block text-4xl md:text-5xl lg:text-9xl text-gray-800 break-words sm:whitespace-nowrap">DreamScape AI™</span>
+          <span className="block text-4xl md:text-5xl lg:text-9xl text-gray-800 break-words sm:whitespace-nowrap">DreamScape AI<span className="font-sans">™</span></span>
         </h1>
       </main>
 
@@ -38,7 +38,7 @@ export default function Home() {
               You&apos;re not alone. Most people sense a greater purpose — but feel held back without knowing why.
             </p>
             <p className="mb-4 text-base text-black leading-relaxed">
-              You&apos;re not stuck — you&apos;re being driven by forces you can&apos;t yet see. Answer just five key questions, and DreamScape AI™ will reveal
+              You&apos;re not stuck — you&apos;re being driven by forces you can&apos;t yet see. Answer just five key questions, and DreamScape AI<span className="font-sans">™</span> will reveal
               what&apos;s holding you back — and how to move forward.
             </p>
             <div className="flex justify-center">
@@ -77,7 +77,7 @@ export default function Home() {
                   You&apos;re not alone. Most people sense a greater purpose — but feel held back without knowing why.
                 </p>
                 <p className="mb-6 text-lg md:text-xl text-white leading-relaxed">
-                  You&apos;re not stuck — you&apos;re being driven by forces you can&apos;t yet see. Answer just five key questions, and DreamScape AI™ will reveal
+                  You&apos;re not stuck — you&apos;re being driven by forces you can&apos;t yet see. Answer just five key questions, and DreamScape AI<span className="font-sans">™</span> will reveal
                   what&apos;s holding you back — and how to move forward. You&apos;ll receive a personalized, science-based roadmap designed to align
                   your thoughts, emotions, and actions with your highest potential.
                 </p>
