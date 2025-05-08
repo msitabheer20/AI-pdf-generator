@@ -8,7 +8,7 @@ export default function Home() {
       <main className="container max-w-4xl mx-auto font-syne px-4 pt-6 md:pt-10">
         <h1 className="text-center mb-6 md:mb-16">
           <span className="block text-3xl sm:text-4xl md:text-6xl lg:text-9xl text-gray-800 font-sans">Welcome to</span>
-          <span className="block text-3xl sm:text-4xl md:text-6xl lg:text-9xl text-gray-800 font-sans">DreamScape AI™</span>
+          <span className="block text-3xl sm:text-4xl md:text-6xl lg:text-9xl text-gray-800 font-sans whitespace-nowrap">DreamScape AI™</span>
         </h1>
       </main>
       
