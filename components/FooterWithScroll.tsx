@@ -15,19 +15,19 @@ export default function FooterWithScroll() {
   };
 
   return (
-    <footer className="py-4 md:py-6 border-t border-gray-200">
+    <footer className="py-4 md:py-6 border-t border-gray-200 font-open-sans">
       <div className="container mx-auto px-4 text-center">
         <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 mb-4 md:mb-8">
           <Link
             href="/terms-and-conditions"
-            className="text-sm md:text-base hover:text-gray-600 underline"
+            className="text-sm md:text-base hover:text-gray-600 underline font-open-sans"
             onClick={handleSmoothScroll}
           >
             Terms and Conditions
           </Link>
           <Link
             href="/privacy-policy"
-            className="text-sm md:text-base hover:text-gray-600 underline"
+            className="text-sm md:text-base hover:text-gray-600 underline font-open-sans"
             onClick={handleSmoothScroll}
           >
             Privacy Policy

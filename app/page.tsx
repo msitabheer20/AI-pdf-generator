@@ -42,7 +42,7 @@ export default function Home() {
               </p>
               <Link 
                 href="/assessment" 
-                className="inline-block px-5 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-lg sm:text-xl md:text-2xl text-orange-600 font-semibold rounded-full border border-orange-200 bg-white overflow-hidden transition-all duration-300 ease-in-out hover:bg-orange-600 hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2"
+                className="inline-block px-5 sm:px-8 md:px-10 py-3 sm:py-4 md:py-5 text-lg sm:text-xl md:text-2xl text-white font-semibold rounded-full border border-blue-200 bg-blue-700 overflow-hidden transition-all duration-300 ease-in-out hover:bg-[#446AFF] hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2"
               >
                 Personalized Report
               </Link>
