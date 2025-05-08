@@ -11,7 +11,7 @@ const TermsAndConditions = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <main className="max-w-4xl w-full font-syne">
+      <main className="max-w-4xl w-full font-open-sans">
         <h1 className="text-4xl md:text-6xl lg:text-8xl mb-8 md:mb-16 text-gray-900 text-center">Terms & Conditions</h1>
 
         <section className="mb-10">
@@ -43,14 +43,13 @@ const TermsAndConditions = () => {
 
           <div className="flex justify-center mt-12 mb-12">
             <button
-              className="relative px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg text-orange-600 font-semibold rounded-full border border-orange-200 bg-white overflow-hidden transition-all duration-300 ease-in-out hover:bg-orange-600 hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2"
+              className="relative px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg text-white font-semibold rounded-full border border-blue-200 bg-blue-700 overflow-hidden transition-all duration-300 ease-in-out hover:bg-[#446AFF] hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 font-open-sans"
               onClick={navigateToAssessment}
             >
               Take an Assessment
             </button>
           </div>
         </section>
-
       </main>
     </div>
   );

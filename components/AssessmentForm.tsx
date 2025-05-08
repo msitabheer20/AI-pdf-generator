@@ -245,7 +245,7 @@ export default function AssessmentForm() {
   const hasDuplicateError = 'duplicateResponses' in errors;
 
   return (
-    <div className="bg-transparent max-w-2xl w-full">
+    <div className="bg-transparent max-w-2xl w-full font-[system-ui,-apple-system,BlinkMacSystemFont,Segoe_UI,Roboto,Oxygen,Ubuntu,Cantarell,Open_Sans,Helvetica_Neue,sans-serif]">
       {/* <div className="flex items-center justify-center mb-6">
         <div className="w-25 h-25 mr-3 relative">
           <Image

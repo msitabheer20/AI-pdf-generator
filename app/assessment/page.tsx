@@ -5,12 +5,12 @@ import Image from 'next/image';
 export default function AssessmentPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex flex-col items-center p-4 pb-16">
-      <div className="w-full max-w-4xl mb-8 font-syne">
+      <div className="w-full max-w-4xl mb-8 font-open-sans">
         <h1 className="text-4xl md:text-6xl mb-6 text-gray-900">
           Discover the Hidden You
         </h1>
         <h2 className="text-lg md:text-xl font-bold mb-2 text-gray-900">
-          DreamScape AI<span className="font-sans">™</span>: The Free Self-Discovery Tool Every Person Deserves
+          DreamScape AI<span className="font-open-sans">™</span>: The Free Self-Discovery Tool Every Person Deserves
         </h2>
 
         <p className="text-sm md:text-base mb-6 text-gray-900">
@@ -18,13 +18,13 @@ export default function AssessmentPage() {
         </p>
 
         <p className="text-lg md:text-xl font-bold mb-2 text-gray-900">
-          DreamScape AI<span className="font-sans">™</span> – a revolutionary tool designed for people who want more out of life.
+          DreamScape AI<span className="font-open-sans">™</span> – a revolutionary tool designed for people who want more out of life.
         </p>
 
         <div className="mb-6">
           <ul className="list-disc pl-6 mb-4 text-sm md:text-base text-gray-900">
             <li className="mb-2 list-none font-bold">
-              ✨ What You'll Discover with DreamScape AI<span className="font-sans">™</span> (for FREE):
+              ✨ What You'll Discover with DreamScape AI<span className="font-open-sans">™</span> (for FREE):
             </li>
             <li className="mb-2 list-none">
               <span>✅ What your subconscious mind is really seeking—beyond surface-level goals</span>
@@ -49,11 +49,11 @@ export default function AssessmentPage() {
         </p>
 
         <p className="text-sm md:text-base mb-6 text-gray-900">
-          <span className="font-bold">DreamScape AI<span className="font-sans">™</span></span> does the rest. You'll receive a personalized roadmap for real, measurable change — based entirely on your unique way of thinking, feeling, speaking, and acting. This is not guesswork. It's tailored transformation.
+          <span className="font-bold">DreamScape AI<span className="font-open-sans">™</span></span> does the rest. You'll receive a personalized roadmap for real, measurable change — based entirely on your unique way of thinking, feeling, speaking, and acting. This is not guesswork. It's tailored transformation.
         </p>
 
         <p className="text-sm md:text-base mb-6 text-gray-900">
-          <span className="font-bold">DreamScape AI<span className="font-sans">™</span></span> identifies the hidden patterns holding you back and gives you a clear, direct path forward — so you can reach your goals with clarity, speed, and confidence.
+          <span className="font-bold">DreamScape AI<span className="font-open-sans">™</span></span> identifies the hidden patterns holding you back and gives you a clear, direct path forward — so you can reach your goals with clarity, speed, and confidence.
         </p>
 
         <p className="text-sm md:text-base font-bold mb-8 text-gray-900">

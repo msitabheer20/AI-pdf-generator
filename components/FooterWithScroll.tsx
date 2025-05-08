@@ -33,7 +33,7 @@ export default function FooterWithScroll() {
             Privacy Policy
           </Link>
         </div>
-        <h2 className="text-lg md:text-2xl text-gray-400 font-syne">Proudly brought to you by the Neuro Change Institute ®</h2>
+        <h2 className="text-lg md:text-2xl text-gray-400 font-open-sans">Proudly brought to you by the Neuro Change Institute ®</h2>
       </div>
     </footer>
   );

@@ -11,7 +11,7 @@ const PrivacyPolicy = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 flex items-center justify-center p-4">
-      <main className="max-w-4xl w-full font-syne">
+      <main className="max-w-4xl w-full font-open-sans">
         <h1 className="text-4xl md:text-6xl lg:text-8xl mb-8 md:mb-16 text-gray-900 text-center">Privacy Policy</h1>
 
         <p className="text-2xl md:text-3xl lg:text-4xl font-bold mb-4 text-gray-800">
@@ -141,13 +141,13 @@ const PrivacyPolicy = () => {
           Our assessments are personalized but not algorithmically determinative of outcomes.
         </p>
 
-        <h2 className="text-xl md:text-2xl font-bold mt-8 mb-4 text-gray-900 font-syne">11. Policy Updates</h2>
+        <h2 className="text-xl md:text-2xl font-bold mt-8 mb-4 text-gray-900">11. Policy Updates</h2>
         <p className="mb-4 text-sm md:text-base text-gray-700">
           This Privacy Policy may be updated from time to time. We will notify you of any significant changes through our
           website or by email where appropriate.
         </p>
 
-        <h2 className="text-xl md:text-2xl font-bold mt-8 mb-4 text-gray-900 font-syne">12. Contact Information</h2>
+        <h2 className="text-xl md:text-2xl font-bold mt-8 mb-4 text-gray-900">12. Contact Information</h2>
         <p className="mb-4 text-sm md:text-base text-gray-700">
           For privacy inquiries or to exercise your data rights, contact:
         </p>
@@ -160,13 +160,12 @@ const PrivacyPolicy = () => {
 
         <div className="flex justify-center mt-12 mb-12">
           <button
-            className="relative px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg text-orange-600 font-semibold rounded-full border border-orange-200 bg-white overflow-hidden transition-all duration-300 ease-in-out hover:bg-orange-600 hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-orange-600 focus:ring-offset-2"
+            className="relative px-4 sm:px-6 py-2 sm:py-3 text-base sm:text-lg text-white font-semibold rounded-full border border-blue-200 bg-blue-700 overflow-hidden transition-all duration-300 ease-in-out hover:bg-[#446AFF] hover:border-transparent hover:text-white hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-offset-2 font-open-sans"
             onClick={navigateToAssessment}
           >
             Take an Assessment
           </button>
         </div>
-
       </main>
     </div>
   );
