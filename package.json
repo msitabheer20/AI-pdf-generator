@@ -12,6 +12,7 @@
     "@hookform/resolvers": "^5.0.1",
     "@pinecone-database/pinecone": "^5.1.2",
     "@react-pdf/renderer": "^4.3.0",
+    "@sendgrid/mail": "^8.1.5",
     "@types/dompurify": "^3.0.5",
     "dompurify": "^3.2.5",
     "html-to-image": "^1.11.13",

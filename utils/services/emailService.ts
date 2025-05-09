@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 
 interface EmailOptions {
   to: string;
@@ -12,38 +12,29 @@ interface EmailOptions {
   }>;
 }
 
-// Create reusable transporter object using SMTP transport
-const createTransporter = () => {
-  const transporter = nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-    port: parseInt(process.env.EMAIL_PORT || '587'),
-    secure: process.env.EMAIL_SECURE === 'true', // true for 465, false for other ports
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
-    },
-  });
-
-  return transporter;
-};
+// Initialize SendGrid with API key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY || '');
 
 export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
   try {
-    const transporter = createTransporter();
-
-    // Set up email data with unicode symbols
-    const mailOptions = {
-      from: `"DreamScape AI" <${process.env.EMAIL_FROM || process.env.EMAIL_USER}>`,
+    // Convert options to SendGrid format
+    const msg = {
+      from: process.env.EMAIL_FROM || 'noreply@dreamscapeai.com',
       to: options.to,
       subject: options.subject,
       text: options.text,
-      html: options.html,
-      attachments: options.attachments,
+      html: options.html || '',
+      attachments: options.attachments?.map(attachment => ({
+        filename: attachment.filename,
+        content: attachment.content.toString('base64'),
+        type: attachment.contentType || 'application/pdf',
+        disposition: 'attachment'
+      }))
     };
 
-    // Send mail with defined transport object
-    const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent successfully: ${info.messageId}`);
+    // Send mail with SendGrid
+    await sgMail.send(msg);
+    console.log(`Email sent successfully to: ${options.to}`);
 
     return true;
   } catch (error) {
