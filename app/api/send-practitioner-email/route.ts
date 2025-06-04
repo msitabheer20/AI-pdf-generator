@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { sendClientAndPractitionerReports } from '@/utils/services/emailService';
+import practitioners from '@/public/practitioners.json';
 
 export async function POST(request: Request) {
   try {
@@ -16,6 +17,10 @@ export async function POST(request: Request) {
     const practitionerPdfBuffer = Buffer.from(practitionerPdfBase64, 'base64');
     const clientPdfBuffer = Buffer.from(clientPdfBase64, 'base64');
     
+    // Find practitioner name from the email
+    const practitioner = practitioners.find(p => p.email === practitionerEmail);
+    const practitionerName = practitioner ? practitioner.label : undefined;
+    
     // Return success immediately
     const response = NextResponse.json({ success: true, userEmailSent: true });
     
@@ -25,7 +30,8 @@ export async function POST(request: Request) {
       firstName,
       practitionerPdfBuffer,
       clientPdfBuffer,
-      userEmail
+      userEmail,
+      practitionerName
     ).catch(error => {
       console.error('Background email sending error:', error);
     });
